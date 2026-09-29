@@ -1,9 +1,30 @@
-import { useEffect, useMemo, useState } from 'react';
-import { useUser } from '@clerk/react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useAuth, useUser } from '@clerk/react';
 
-interface SavedFriend {
+interface PlayerSummary {
   playerId: string;
-  label: string;
+  displayName: string;
+  username: string | null;
+  imageUrl: string;
+}
+
+interface Challenge {
+  id: string;
+  from: PlayerSummary;
+  to: PlayerSummary;
+  status: 'pending' | 'accepted' | 'declined' | 'cancelled';
+  createdAt: string;
+  matchId?: string;
+}
+
+interface NetworkState {
+  friends: PlayerSummary[];
+  incoming: Challenge[];
+  outgoing: Challenge[];
+  activeMatch?: {
+    matchId: string;
+    opponent: PlayerSummary;
+  };
 }
 
 interface FriendsPanelProps {
@@ -11,115 +32,218 @@ interface FriendsPanelProps {
   onClose: () => void;
 }
 
+const EMPTY_NETWORK: NetworkState = { friends: [], incoming: [], outgoing: [] };
+
 export function FriendsPanel({ open, onClose }: FriendsPanelProps) {
   const { user } = useUser();
-  const [playerId, setPlayerId] = useState('');
-  const [friends, setFriends] = useState<SavedFriend[]>([]);
+  const { getToken } = useAuth();
+  const [query, setQuery] = useState('');
+  const [results, setResults] = useState<PlayerSummary[]>([]);
+  const [network, setNetwork] = useState<NetworkState>(EMPTY_NETWORK);
   const [message, setMessage] = useState('');
-  const storageKey = useMemo(() => user ? `zulu-casino.friends.${user.id}` : '', [user]);
+  const [busy, setBusy] = useState(false);
+  const [networkAvailable, setNetworkAvailable] = useState(true);
+
+  const api = useCallback(async (path: string, init?: RequestInit) => {
+    const token = await getToken();
+    const response = await fetch(path, {
+      ...init,
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+        ...init?.headers,
+      },
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(data.error || 'Player network request failed.');
+    return data;
+  }, [getToken]);
+
+  const refresh = useCallback(async (quiet = false) => {
+    if (!user) return;
+    try {
+      const data = await api('/api/challenges');
+      setNetwork(data);
+      setNetworkAvailable(true);
+    } catch (error) {
+      setNetworkAvailable(false);
+      if (!quiet) setMessage(error instanceof Error ? error.message : 'Player network unavailable.');
+    }
+  }, [api, user]);
 
   useEffect(() => {
-    if (!storageKey) return;
-    try {
-      setFriends(JSON.parse(window.localStorage.getItem(storageKey) ?? '[]'));
-    } catch {
-      setFriends([]);
-    }
-  }, [storageKey]);
-
-  function saveFriends(next: SavedFriend[]) {
-    setFriends(next);
-    window.localStorage.setItem(storageKey, JSON.stringify(next));
-  }
-
-  async function copy(value: string, successMessage: string) {
-    try {
-      await navigator.clipboard.writeText(value);
-      setMessage(successMessage);
-    } catch {
-      setMessage('Copy failed. Select the Player ID manually.');
-    }
-  }
-
-  function addFriend() {
-    const cleanId = playerId.trim();
-    if (!cleanId.startsWith('user_')) {
-      setMessage('Enter a Clerk Player ID beginning with user_.');
-      return;
-    }
-    if (cleanId === user?.id) {
-      setMessage('That is your own Player ID.');
-      return;
-    }
-    if (friends.some((friend) => friend.playerId === cleanId)) {
-      setMessage('That player is already in your friend list.');
-      return;
-    }
-    saveFriends([...friends, { playerId: cleanId, label: `Player ${friends.length + 1}` }]);
-    setPlayerId('');
-    setMessage('Friend saved for testing.');
-  }
-
-  function challenge(friend: SavedFriend) {
     if (!user) return;
-    const url = new URL(window.location.origin);
-    url.searchParams.set('challenge', user.id);
-    url.searchParams.set('opponent', friend.playerId);
-    void copy(url.toString(), `Challenge link copied for ${friend.label}.`);
+    void refresh(true);
+    const timer = window.setInterval(() => void refresh(true), 3000);
+    return () => window.clearInterval(timer);
+  }, [refresh, user]);
+
+  const pendingIncoming = useMemo(() => (
+    network.incoming.find((challenge) => challenge.status === 'pending')
+  ), [network.incoming]);
+
+  async function run(action: () => Promise<void>) {
+    setBusy(true);
+    try {
+      await action();
+      await refresh(true);
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : 'That action could not be completed.');
+    } finally {
+      setBusy(false);
+    }
   }
 
-  if (!open || !user) return null;
+  function searchPlayers() {
+    const value = query.trim();
+    if (value.length < 2) {
+      setMessage('Enter at least two letters of a name, username, or a Player ID.');
+      return;
+    }
+    void run(async () => {
+      const data = await api(`/api/challenges?query=${encodeURIComponent(value)}`);
+      setResults(data.players ?? []);
+      setMessage(data.players?.length ? '' : 'No matching player was found.');
+    });
+  }
 
-  const displayName = user.fullName || user.primaryEmailAddress?.emailAddress || 'Zulu Casino player';
+  function addFriend(player: PlayerSummary) {
+    void run(async () => {
+      await api('/api/challenges', {
+        method: 'POST',
+        body: JSON.stringify({ action: 'addFriend', targetPlayerId: player.playerId }),
+      });
+      setMessage(`${player.displayName} was added to your friends.`);
+    });
+  }
+
+  function challenge(player: PlayerSummary) {
+    void run(async () => {
+      await api('/api/challenges', {
+        method: 'POST',
+        body: JSON.stringify({ action: 'sendChallenge', targetPlayerId: player.playerId }),
+      });
+      setMessage(`Challenge sent to ${player.displayName}.`);
+    });
+  }
+
+  function respond(challengeRequest: Challenge, decision: 'accepted' | 'declined') {
+    void run(async () => {
+      await api('/api/challenges', {
+        method: 'POST',
+        body: JSON.stringify({ action: 'respond', challengeId: challengeRequest.id, decision }),
+      });
+      setMessage(decision === 'accepted'
+        ? `Challenge accepted. ${challengeRequest.from.displayName} has been notified.`
+        : 'Challenge declined.');
+    });
+  }
+
+  if (!user) return null;
+
+  const displayName = user.username || user.fullName || 'Zulu Casino player';
 
   return (
-    <div className="friends-backdrop" onMouseDown={onClose}>
-      <section className="friends-panel" aria-label="Friends and challenges" onMouseDown={(event) => event.stopPropagation()}>
-        <header>
-          <div>
-            <span>Player network</span>
-            <h2>{displayName}</h2>
+    <>
+      {pendingIncoming && (
+        <aside className="challenge-toast" role="dialog" aria-live="assertive" aria-label="Incoming game challenge">
+          <div className="player-avatar">
+            {pendingIncoming.from.imageUrl
+              ? <img src={pendingIncoming.from.imageUrl} alt="" />
+              : pendingIncoming.from.displayName.slice(0, 1).toUpperCase()}
           </div>
-          <button className="panel-close" onClick={onClose} aria-label="Close friends panel">×</button>
-        </header>
-
-        <div className="player-id-block">
-          <span>Your Player ID</span>
-          <code>{user.id}</code>
-          <button className="secondary-button" onClick={() => void copy(user.id, 'Player ID copied.')}>Copy ID</button>
-        </div>
-
-        <div className="friend-search">
-          <label htmlFor="friend-player-id">Find by Player ID</label>
           <div>
-            <input
-              id="friend-player-id"
-              value={playerId}
-              onChange={(event) => setPlayerId(event.target.value)}
-              placeholder="user_..."
-              autoComplete="off"
-            />
-            <button className="account-button" onClick={addFriend}>Add friend</button>
+            <span>Incoming challenge</span>
+            <strong>{pendingIncoming.from.displayName}</strong>
+            <p>wants to play Classic 1v1.</p>
           </div>
-        </div>
+          <button className="account-button" disabled={busy} onClick={() => respond(pendingIncoming, 'accepted')}>Accept</button>
+          <button className="secondary-button" disabled={busy} onClick={() => respond(pendingIncoming, 'declined')}>Decline</button>
+        </aside>
+      )}
 
-        <div className="friends-list">
-          <span>Friends · {friends.length}</span>
-          {friends.length ? friends.map((friend) => (
-            <article key={friend.playerId}>
-              <div><strong>{friend.label}</strong><code>{friend.playerId}</code></div>
-              <button className="secondary-button" onClick={() => challenge(friend)}>Challenge</button>
-              <button
-                className="remove-friend"
-                onClick={() => saveFriends(friends.filter((candidate) => candidate.playerId !== friend.playerId))}
-                aria-label={`Remove ${friend.label}`}
-              >×</button>
-            </article>
-          )) : <p>No friends saved yet.</p>}
-        </div>
+      {network.activeMatch && !pendingIncoming && (
+        <aside className="match-ready-toast" role="status">
+          <span>Match ready</span>
+          <strong>{network.activeMatch.opponent.displayName}</strong>
+          <p>Both players accepted. Online table syncing comes next.</p>
+        </aside>
+      )}
 
-        {message && <p className="friends-message" role="status">{message}</p>}
-      </section>
-    </div>
+      {open && (
+        <div className="friends-backdrop" onMouseDown={onClose}>
+          <section className="friends-panel" aria-label="Friends and challenges" onMouseDown={(event) => event.stopPropagation()}>
+            <header>
+              <div>
+                <span>Player network</span>
+                <h2>{displayName}</h2>
+              </div>
+              <button className="panel-close" onClick={onClose} aria-label="Close friends panel">×</button>
+            </header>
+
+            {!networkAvailable && (
+              <p className="network-warning">Online challenges are reconnecting. Your table can still be played locally.</p>
+            )}
+
+            <div className="player-id-block">
+              <span>Your Player ID</span>
+              <code>{user.id}</code>
+            </div>
+
+            <div className="friend-search">
+              <label htmlFor="friend-player-search">Find a player</label>
+              <div>
+                <input
+                  id="friend-player-search"
+                  value={query}
+                  onChange={(event) => setQuery(event.target.value)}
+                  onKeyDown={(event) => event.key === 'Enter' && searchPlayers()}
+                  placeholder="Name, username, or Player ID"
+                  autoComplete="off"
+                />
+                <button className="account-button" disabled={busy} onClick={searchPlayers}>Search</button>
+              </div>
+            </div>
+
+            {results.length > 0 && (
+              <div className="player-results">
+                <span>Players</span>
+                {results.map((player) => {
+                  const isFriend = network.friends.some((friend) => friend.playerId === player.playerId);
+                  return (
+                    <article key={player.playerId}>
+                      <div className="player-avatar">
+                        {player.imageUrl ? <img src={player.imageUrl} alt="" /> : player.displayName.slice(0, 1).toUpperCase()}
+                      </div>
+                      <div><strong>{player.displayName}</strong><small>{player.username ? `@${player.username}` : 'Zulu Casino player'}</small></div>
+                      {isFriend
+                        ? <button className="secondary-button" disabled={busy} onClick={() => challenge(player)}>Challenge</button>
+                        : <button className="account-button" disabled={busy} onClick={() => addFriend(player)}>Add Friend</button>}
+                    </article>
+                  );
+                })}
+              </div>
+            )}
+
+            <div className="friends-list">
+              <span>Friends · {network.friends.length}</span>
+              {network.friends.length ? network.friends.map((friend) => {
+                const waiting = network.outgoing.some((item) => item.to.playerId === friend.playerId && item.status === 'pending');
+                return (
+                  <article key={friend.playerId}>
+                    <div><strong>{friend.displayName}</strong><small>{friend.username ? `@${friend.username}` : 'Friend'}</small></div>
+                    <button className="secondary-button" disabled={busy || waiting} onClick={() => challenge(friend)}>
+                      {waiting ? 'Waiting' : 'Challenge'}
+                    </button>
+                  </article>
+                );
+              }) : <p>Search for a player to add your first friend.</p>}
+            </div>
+
+            {message && <p className="friends-message" role="status">{message}</p>}
+          </section>
+        </div>
+      )}
+    </>
   );
 }

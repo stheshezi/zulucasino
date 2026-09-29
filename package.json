@@ -10,7 +10,9 @@
     "test:watch": "vitest"
   },
   "dependencies": {
+    "@clerk/backend": "^3.20.1",
     "@clerk/react": "^6.17.2",
+    "@vercel/node": "^16.0.2",
     "react": "18.3.1",
     "react-dom": "18.3.1"
   },
