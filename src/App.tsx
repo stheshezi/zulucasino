@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
+import { Show, SignInButton, SignUpButton, UserButton } from '@clerk/react';
 import {
   applyGameAction,
   canStartNextRound,
@@ -1027,6 +1028,27 @@ export default function App() {
           <strong>{game.deck.length}</strong> in deck
         </div>
         <div className="table-controls">
+          <div className="auth-controls" aria-label="Player account">
+            <Show when="signed-out">
+              <SignInButton mode="modal">
+                <button className="secondary-button">Sign in</button>
+              </SignInButton>
+              <SignUpButton mode="modal">
+                <button className="account-button">Create account</button>
+              </SignUpButton>
+            </Show>
+            <Show when="signed-in">
+              <UserButton
+                showName
+                appearance={{
+                  elements: {
+                    userButtonBox: 'clerk-user-box',
+                    userButtonOuterIdentifier: 'clerk-user-name',
+                  },
+                }}
+              />
+            </Show>
+          </div>
           <label className="mode-picker">
             <span>Mode</span>
             <select
