@@ -1,4 +1,4 @@
-import { Card, Player } from './types';
+import { Card, Player } from './types.js';
 
 export interface DealRule {
   name: string;

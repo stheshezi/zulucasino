@@ -17,3 +17,6 @@ Thumbs.db
 Flow 05 * Captured Inventory & Exposed Top Card.html
 Flow 05 * Captured Inventory & Exposed Top Card_files/
 
+
+.vercel
+.env*

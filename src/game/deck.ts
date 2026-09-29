@@ -1,4 +1,4 @@
-import { Card, CardValue, SUITS } from './types';
+import { Card, CardValue, SUITS } from './types.js';
 
 export const DECK_SIZE = 40;
 

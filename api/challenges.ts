@@ -1,5 +1,13 @@
 import { createClerkClient, verifyToken, type User } from '@clerk/backend';
 import type { VercelRequest, VercelResponse } from '@vercel/node';
+import type { GameMode } from '../src/game/index.js';
+import {
+  acceptMatchLobbyPlayer,
+  cancelMatchLobby,
+  createMatchLobby,
+  ensureMatchRecord,
+  expectedPlayersForMode,
+} from './match-store.js';
 
 type ChallengeStatus = 'pending' | 'accepted' | 'declined' | 'cancelled';
 
@@ -14,17 +22,21 @@ interface Challenge {
   id: string;
   from: PlayerSummary;
   to: PlayerSummary;
-  mode: 'classic-1v1';
+  mode: GameMode;
   status: ChallengeStatus;
   createdAt: string;
   updatedAt: string;
   matchId?: string;
+  participants?: PlayerSummary[];
 }
 
 interface ActiveMatch {
   matchId: string;
   opponent: PlayerSummary;
+  participants?: PlayerSummary[];
+  mode: GameMode;
   createdAt: string;
+  status: 'ready';
 }
 
 interface PlayerNetwork {
@@ -180,6 +192,54 @@ export default async function handler(request: VercelRequest, response: VercelRe
       return response.status(201).json({ challenge });
     }
 
+    if (action === 'sendGroupChallenge') {
+      const mode = body.mode === 'three-hand-qualifier' || body.mode === 'partners-2v2'
+        ? body.mode as GameMode
+        : 'three-hand-rush';
+      const targetPlayerIds = Array.isArray(body.targetPlayerIds)
+        ? [...new Set(body.targetPlayerIds.map(String))]
+        : [];
+      const inviteCount = expectedPlayersForMode(mode) - 1;
+      if (targetPlayerIds.length !== inviteCount || targetPlayerIds.includes(userId)) {
+        return response.status(400).json({ error: `Choose exactly ${inviteCount} other players for this table.` });
+      }
+      const targets = await Promise.all(targetPlayerIds.map(findPlayer));
+      if (targets.some((target) => !target)) return response.status(404).json({ error: 'One or more players could not be found.' });
+      const players = [playerSummary(currentUser), ...targets.map((target) => playerSummary(target!))];
+      const targetUsers = targets as User[];
+      const targetNetworks = targetUsers.map(readNetwork);
+      if (targetNetworks.some((network) => network.activeMatch)) {
+        return response.status(409).json({ error: 'One of those players is already in a table.' });
+      }
+
+      const myNetwork = readNetwork(currentUser);
+      const matchId = `match_${crypto.randomUUID()}`;
+      const now = new Date().toISOString();
+      const challenges = targetUsers.map((target) => ({
+        id: `challenge_${crypto.randomUUID()}`,
+        from: playerSummary(currentUser),
+        to: playerSummary(target),
+        mode,
+        status: 'pending' as const,
+        createdAt: now,
+        updatedAt: now,
+        matchId,
+        participants: players,
+      }));
+      await createMatchLobby(matchId, players, mode);
+      await Promise.all([
+        writeNetwork(userId, {
+          ...myNetwork,
+          challenges: challenges.reduce((items, challenge) => upsertChallenge(items, challenge), myNetwork.challenges),
+        }),
+        ...targetUsers.map((target, index) => writeNetwork(target.id, {
+          ...targetNetworks[index],
+          challenges: upsertChallenge(targetNetworks[index].challenges, challenges[index]),
+        })),
+      ]);
+      return response.status(201).json({ matchId, mode, players, challenges });
+    }
+
     if (action === 'respond') {
       const challengeId = String(body.challengeId ?? '');
       const decision = body.decision === 'accepted' ? 'accepted' : body.decision === 'declined' ? 'declined' : null;
@@ -193,7 +253,10 @@ export default async function handler(request: VercelRequest, response: VercelRe
       const sender = await findPlayer(existing.from.playerId);
       if (!sender) return response.status(404).json({ error: 'The challenging player is no longer available.' });
       const senderNetwork = readNetwork(sender);
-      const matchId = decision === 'accepted' ? `match_${crypto.randomUUID()}` : undefined;
+      const groupedChallenge = existing.mode !== 'classic-1v1';
+      const matchId = decision === 'accepted'
+        ? existing.matchId ?? `match_${crypto.randomUUID()}`
+        : existing.matchId;
       const updated: Challenge = {
         ...existing,
         status: decision,
@@ -201,19 +264,108 @@ export default async function handler(request: VercelRequest, response: VercelRe
         ...(matchId ? { matchId } : {}),
       };
       const acceptedAt = new Date().toISOString();
+      const updatedSenderChallenges = upsertChallenge(senderNetwork.challenges, updated);
+      if (groupedChallenge && (!matchId || existing.participants?.length !== expectedPlayersForMode(existing.mode))) {
+        return response.status(409).json({ error: 'This table invitation has an invalid player roster.' });
+      }
+      if (groupedChallenge && matchId && existing.participants?.length === expectedPlayersForMode(existing.mode)) {
+        const lobbyAcceptance = decision === 'accepted'
+          ? await acceptMatchLobbyPlayer(matchId, userId)
+          : null;
+        if (decision === 'declined') await cancelMatchLobby(matchId);
+        if (decision === 'accepted' && !lobbyAcceptance) {
+          return response.status(409).json({ error: 'This table lobby is no longer waiting for players.' });
+        }
+        if (decision === 'accepted' && !lobbyAcceptance!.ready) {
+          await Promise.all([
+            writeNetwork(userId, { ...myNetwork, challenges: upsertChallenge(myNetwork.challenges, updated) }),
+            writeNetwork(sender.id, { ...senderNetwork, challenges: updatedSenderChallenges }),
+          ]);
+          return response.status(200).json({
+            challenge: updated,
+            ready: false,
+            waitingFor: expectedPlayersForMode(existing.mode) - lobbyAcceptance!.acceptedCount,
+          });
+        }
+        if (decision === 'declined') {
+          const declinedParticipants = await Promise.all(existing.participants.map(async (participant) => {
+            if (participant.playerId === currentUser.id) return currentUser;
+            if (participant.playerId === sender.id) return sender;
+            const player = await findPlayer(participant.playerId);
+            if (!player) throw new Error('A table invitee is no longer available.');
+            return player;
+          }));
+          await Promise.all(declinedParticipants.map((participant) => {
+            const participantNetwork = participant.id === currentUser.id
+              ? myNetwork
+              : participant.id === sender.id ? senderNetwork : readNetwork(participant);
+            const challenges = upsertChallenge(participantNetwork.challenges, updated)
+              .map((challenge) => challenge.matchId === matchId && challenge.status === 'pending'
+                ? { ...challenge, status: 'cancelled' as const, updatedAt: acceptedAt }
+                : challenge);
+            return writeNetwork(participant.id, { ...participantNetwork, challenges });
+          }));
+          return response.status(200).json({ challenge: updated, ready: false });
+        }
+
+        const participants = existing.participants;
+        const participantUsers = await Promise.all(participants.map(async (participant) => {
+          if (participant.playerId === currentUser.id) return currentUser;
+          if (participant.playerId === sender.id) return sender;
+          const user = await findPlayer(participant.playerId);
+          if (!user) throw new Error('A 3-Hand player is no longer available.');
+          return user;
+        }));
+        await ensureMatchRecord(matchId, participants, existing.mode);
+        await Promise.all(participantUsers.map((participant) => {
+          const existingNetwork = participant.id === currentUser.id
+            ? { ...myNetwork, challenges: upsertChallenge(myNetwork.challenges, updated) }
+            : participant.id === sender.id
+              ? { ...senderNetwork, challenges: updatedSenderChallenges }
+              : readNetwork(participant);
+          const opponents = participants.filter((entry) => entry.playerId !== participant.id);
+          return writeNetwork(participant.id, {
+            ...existingNetwork,
+            challenges: existingNetwork.challenges.map((challenge) => (
+              challenge.matchId === matchId ? { ...challenge, status: 'accepted', updatedAt: acceptedAt } : challenge
+            )),
+            activeMatch: {
+              matchId,
+              opponent: opponents[0],
+              participants,
+              mode: existing.mode,
+              createdAt: acceptedAt,
+              status: 'ready',
+            },
+          });
+        }));
+        return response.status(200).json({ challenge: updated, ready: true, matchId });
+      }
+
+      if (decision === 'accepted' && matchId) {
+        const [playerOne, playerTwo] = [currentUser, sender]
+          .sort((first, second) => first.id.localeCompare(second.id));
+        await ensureMatchRecord(matchId, [playerSummary(playerOne), playerSummary(playerTwo)], 'classic-1v1');
+      }
       await Promise.all([
         writeNetwork(userId, {
           ...myNetwork,
           challenges: upsertChallenge(myNetwork.challenges, updated),
-          ...(matchId ? { activeMatch: { matchId, opponent: existing.from, createdAt: acceptedAt } } : {}),
+          ...(decision === 'accepted' && matchId ? { activeMatch: {
+            matchId, opponent: existing.from, participants: [existing.to, existing.from],
+            mode: 'classic-1v1' as const, createdAt: acceptedAt, status: 'ready' as const,
+          } } : {}),
         }),
         writeNetwork(sender.id, {
           ...senderNetwork,
-          challenges: upsertChallenge(senderNetwork.challenges, updated),
-          ...(matchId ? { activeMatch: { matchId, opponent: existing.to, createdAt: acceptedAt } } : {}),
+          challenges: updatedSenderChallenges,
+          ...(decision === 'accepted' && matchId ? { activeMatch: {
+            matchId, opponent: existing.to, participants: [existing.from, existing.to],
+            mode: 'classic-1v1' as const, createdAt: acceptedAt, status: 'ready' as const,
+          } } : {}),
         }),
       ]);
-      return response.status(200).json({ challenge: updated });
+      return response.status(200).json({ challenge: updated, ready: decision === 'accepted', matchId });
     }
 
     return response.status(400).json({ error: 'Unknown challenge action.' });

@@ -5,8 +5,8 @@ import {
   getRequiredExposedGroup,
   getRequiredMatchingBuildGroup,
   resolvePendingPublicGroup,
-} from './actions';
-import { Card, CaptureCardRef, GameState, PlayerId } from './types';
+} from './actions.js';
+import { Card, CaptureCardRef, GameState, PlayerId } from './types.js';
 
 export type BotDifficulty = 'easy' | 'medium' | 'hard';
 

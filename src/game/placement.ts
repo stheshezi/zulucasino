@@ -1,4 +1,4 @@
-import { Card } from './types';
+import { Card } from './types.js';
 
 export type LoosePlacementChoice = 'take' | 'stay' | 'build';
 

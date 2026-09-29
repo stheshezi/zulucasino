@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useAuth, useUser } from '@clerk/react';
+import type { GameMode } from '../game';
 
 interface PlayerSummary {
   playerId: string;
@@ -12,9 +13,11 @@ interface Challenge {
   id: string;
   from: PlayerSummary;
   to: PlayerSummary;
+  mode: GameMode;
   status: 'pending' | 'accepted' | 'declined' | 'cancelled';
   createdAt: string;
   matchId?: string;
+  participants?: PlayerSummary[];
 }
 
 interface NetworkState {
@@ -24,17 +27,38 @@ interface NetworkState {
   activeMatch?: {
     matchId: string;
     opponent: PlayerSummary;
+    participants?: PlayerSummary[];
+    mode: GameMode;
   };
 }
 
 interface FriendsPanelProps {
   open: boolean;
   onClose: () => void;
+  onJoinMatch: (match: {
+    matchId: string;
+    opponent: PlayerSummary;
+    participants: PlayerSummary[];
+    mode: GameMode;
+  }) => Promise<void>;
+  joinedMatchId: string | null;
 }
 
 const EMPTY_NETWORK: NetworkState = { friends: [], incoming: [], outgoing: [] };
+const MODE_NAMES: Record<GameMode, string> = {
+  'classic-1v1': 'Classic 1v1',
+  'three-hand-rush': '3-Hand Rush',
+  'three-hand-qualifier': 'Qualifier Rotation',
+  'partners-2v2': 'Partners 2v2',
+};
 
-export function FriendsPanel({ open, onClose }: FriendsPanelProps) {
+function playerCountForMode(mode: GameMode): number {
+  if (mode === 'classic-1v1') return 2;
+  if (mode === 'partners-2v2') return 4;
+  return 3;
+}
+
+export function FriendsPanel({ open, onClose, onJoinMatch, joinedMatchId }: FriendsPanelProps) {
   const { user } = useUser();
   const { getToken } = useAuth();
   const [query, setQuery] = useState('');
@@ -43,6 +67,8 @@ export function FriendsPanel({ open, onClose }: FriendsPanelProps) {
   const [message, setMessage] = useState('');
   const [busy, setBusy] = useState(false);
   const [networkAvailable, setNetworkAvailable] = useState(true);
+  const [tableMode, setTableMode] = useState<GameMode>('classic-1v1');
+  const [selectedTablePlayerIds, setSelectedTablePlayerIds] = useState<string[]>([]);
 
   const api = useCallback(async (path: string, init?: RequestInit) => {
     const token = await getToken();
@@ -63,7 +89,12 @@ export function FriendsPanel({ open, onClose }: FriendsPanelProps) {
     if (!user) return;
     try {
       const data = await api('/api/challenges');
-      setNetwork(data);
+      setNetwork({
+        friends: Array.isArray(data.friends) ? data.friends : [],
+        incoming: Array.isArray(data.incoming) ? data.incoming : [],
+        outgoing: Array.isArray(data.outgoing) ? data.outgoing : [],
+        ...(data.activeMatch ? { activeMatch: data.activeMatch } : {}),
+      });
       setNetworkAvailable(true);
     } catch (error) {
       setNetworkAvailable(false);
@@ -81,6 +112,24 @@ export function FriendsPanel({ open, onClose }: FriendsPanelProps) {
   const pendingIncoming = useMemo(() => (
     network.incoming.find((challenge) => challenge.status === 'pending')
   ), [network.incoming]);
+
+  useEffect(() => {
+    const match = network.activeMatch;
+    if (!match || pendingIncoming || joinedMatchId === match.matchId) return;
+    const currentPlayer: PlayerSummary = {
+      playerId: user?.id ?? '',
+      displayName: user?.username || user?.fullName || 'Zulu Casino player',
+      username: user?.username ?? null,
+      imageUrl: user?.imageUrl ?? '',
+    };
+    void onJoinMatch({
+      ...match,
+      participants: match.participants ?? [currentPlayer, match.opponent],
+      mode: match.mode ?? 'classic-1v1',
+    }).catch((error: unknown) => {
+      setMessage(error instanceof Error ? error.message : 'The accepted match could not be opened yet.');
+    });
+  }, [joinedMatchId, network.activeMatch, onJoinMatch, pendingIncoming, user]);
 
   async function run(action: () => Promise<void>) {
     setBusy(true);
@@ -127,14 +176,71 @@ export function FriendsPanel({ open, onClose }: FriendsPanelProps) {
     });
   }
 
+  function toggleTablePlayer(playerId: string) {
+    if (selectedTablePlayerIds.includes(playerId)) {
+      const next = selectedTablePlayerIds.filter((id) => id !== playerId);
+      if (next.length === 0) setTableMode('classic-1v1');
+      else if (next.length === 2 && selectedTablePlayerIds.length === 3 && tableMode === 'partners-2v2') {
+        setTableMode('three-hand-rush');
+      }
+      setSelectedTablePlayerIds(next);
+      return;
+    }
+    if (selectedTablePlayerIds.length >= 3) return;
+    const next = [...selectedTablePlayerIds, playerId];
+    if (next.length === 2 && tableMode === 'classic-1v1') setTableMode('three-hand-rush');
+    if (next.length === 3 && tableMode !== 'partners-2v2') setTableMode('partners-2v2');
+    setSelectedTablePlayerIds(next);
+  }
+
+  function inviteToTable() {
+    const requiredCount = playerCountForMode(tableMode) - 1;
+    if (selectedTablePlayerIds.length !== requiredCount) {
+      setMessage(`Select ${requiredCount} friend${requiredCount === 1 ? '' : 's'} for this table.`);
+      return;
+    }
+    void run(async () => {
+      if (tableMode === 'classic-1v1') {
+        await api('/api/challenges', {
+          method: 'POST',
+          body: JSON.stringify({ action: 'sendChallenge', targetPlayerId: selectedTablePlayerIds[0] }),
+        });
+        setMessage('Classic 1v1 challenge sent. The table starts when they accept.');
+      } else {
+        await api('/api/challenges', {
+          method: 'POST',
+          body: JSON.stringify({ action: 'sendGroupChallenge', targetPlayerIds: selectedTablePlayerIds, mode: tableMode }),
+        });
+        setMessage(`${MODE_NAMES[tableMode]} invitations sent. The table starts when everyone accepts.`);
+      }
+      setSelectedTablePlayerIds([]);
+    });
+  }
+
   function respond(challengeRequest: Challenge, decision: 'accepted' | 'declined') {
     void run(async () => {
-      await api('/api/challenges', {
+      const data = await api('/api/challenges', {
         method: 'POST',
         body: JSON.stringify({ action: 'respond', challengeId: challengeRequest.id, decision }),
       });
+      if (decision === 'accepted' && data.ready && data.challenge?.matchId) {
+        const participants = data.challenge.participants ?? [challengeRequest.from, {
+          playerId: user?.id ?? '',
+          displayName: user?.username || user?.fullName || 'Zulu Casino player',
+          username: user?.username ?? null,
+          imageUrl: user?.imageUrl ?? '',
+        }];
+        await onJoinMatch({
+          matchId: data.challenge.matchId,
+          opponent: challengeRequest.from,
+          participants,
+          mode: data.challenge.mode ?? 'classic-1v1',
+        });
+      }
       setMessage(decision === 'accepted'
-        ? `Challenge accepted. ${challengeRequest.from.displayName} has been notified.`
+        ? data.ready
+          ? `Challenge accepted. ${challengeRequest.from.displayName} has been notified.`
+          : 'Accepted. Waiting for the other invited player to respond.'
         : 'Challenge declined.');
     });
   }
@@ -155,18 +261,10 @@ export function FriendsPanel({ open, onClose }: FriendsPanelProps) {
           <div>
             <span>Incoming challenge</span>
             <strong>{pendingIncoming.from.displayName}</strong>
-            <p>wants to play Classic 1v1.</p>
+            <p>wants to play {MODE_NAMES[pendingIncoming.mode]}.</p>
           </div>
           <button className="account-button" disabled={busy} onClick={() => respond(pendingIncoming, 'accepted')}>Accept</button>
           <button className="secondary-button" disabled={busy} onClick={() => respond(pendingIncoming, 'declined')}>Decline</button>
-        </aside>
-      )}
-
-      {network.activeMatch && !pendingIncoming && (
-        <aside className="match-ready-toast" role="status">
-          <span>Match ready</span>
-          <strong>{network.activeMatch.opponent.displayName}</strong>
-          <p>Both players accepted. Online table syncing comes next.</p>
         </aside>
       )}
 
@@ -239,6 +337,43 @@ export function FriendsPanel({ open, onClose }: FriendsPanelProps) {
                 );
               }) : <p>Search for a player to add your first friend.</p>}
             </div>
+
+            {network.friends.length > 0 && (
+              <fieldset className="table-invite-controls" disabled={busy}>
+                <legend>Set up a table</legend>
+                <label htmlFor="table-mode">Mode</label>
+                <select
+                  id="table-mode"
+                  value={tableMode}
+                  onChange={(event) => {
+                    setTableMode(event.target.value as GameMode);
+                  }}
+                >
+                  {Object.entries(MODE_NAMES).map(([mode, label]) => (
+                    <option key={mode} value={mode}>{label}</option>
+                  ))}
+                </select>
+                <span>Select {playerCountForMode(tableMode) - 1} friend{playerCountForMode(tableMode) === 2 ? '' : 's'}. The deal begins after every invite is accepted.</span>
+                <div className="table-player-choices">
+                  {network.friends.map((friend) => (
+                    <label key={friend.playerId}>
+                      <input
+                        type="checkbox"
+                        checked={selectedTablePlayerIds.includes(friend.playerId)}
+                        disabled={!selectedTablePlayerIds.includes(friend.playerId) && selectedTablePlayerIds.length >= 3}
+                        onChange={() => toggleTablePlayer(friend.playerId)}
+                      />
+                      <span>{friend.displayName}</span>
+                    </label>
+                  ))}
+                </div>
+                <button
+                  className="account-button"
+                  disabled={selectedTablePlayerIds.length !== playerCountForMode(tableMode) - 1}
+                  onClick={inviteToTable}
+                >Send {MODE_NAMES[tableMode]} invites</button>
+              </fieldset>
+            )}
 
             {message && <p className="friends-message" role="status">{message}</p>}
           </section>

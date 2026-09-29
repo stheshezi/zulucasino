@@ -1,8 +1,8 @@
-import { createDeck, cutDeck, shuffleDeck } from './deck';
-import { isRoundDealValid } from './rules';
-import { applyGameAction } from './actions';
-import { assertValidGameState } from './validation';
-import { Card, DealOptions, GameMode, GameState, Player, PlayerId, Round } from './types';
+import { createDeck, cutDeck, shuffleDeck } from './deck.js';
+import { isRoundDealValid } from './rules.js';
+import { applyGameAction } from './actions.js';
+import { assertValidGameState } from './validation.js';
+import { Card, DealOptions, GameMode, GameState, Player, PlayerId, Round } from './types.js';
 
 const HAND_SIZE = 10;
 const MAX_DEAL_ATTEMPTS = 1_000;

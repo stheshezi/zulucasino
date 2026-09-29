@@ -1,5 +1,5 @@
-import { createDeck, DECK_SIZE } from './deck';
-import { GameState, ValidationResult } from './types';
+import { createDeck, DECK_SIZE } from './deck.js';
+import { GameState, ValidationResult } from './types.js';
 
 export function validateGameState(state: GameState): ValidationResult {
   const errors: string[] = [];

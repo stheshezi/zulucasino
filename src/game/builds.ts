@@ -1,4 +1,4 @@
-import { Build, Card } from './types';
+import { Build, Card } from './types.js';
 
 export function orderBuildGroup(cards: readonly Card[]): Card[] {
   return [...cards].sort((left, right) => right.value - left.value);

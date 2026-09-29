@@ -1,4 +1,4 @@
-import { Build, Card, GamePhase, GameScore, GameState, PlayerId, Round } from './types';
+import { Build, Card, GamePhase, GameScore, GameState, PlayerId, Round } from './types.js';
 
 export interface PublicPlayerView {
   id: PlayerId;

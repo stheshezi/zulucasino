@@ -117,6 +117,61 @@ describe('build legality', () => {
     }, 'retain a matching target card');
   });
 
+  it('cannot create a second build at a target value already on the table', () => {
+    const state = makeState({
+      playerOneHand: ['clubs-1', 'diamonds-6'],
+      floor: ['hearts-5'],
+      builds: [{
+        id: 'build-1', targetValue: 6, ownerPlayerId: 'player-2', secured: false,
+        cards: ['clubs-4', 'diamonds-2'],
+      }],
+    });
+
+    expectIllegal(state, {
+      type: 'create-build',
+      playerId: 'player-1',
+      playedCardId: 'clubs-1',
+      floorCardIds: ['hearts-5'],
+      targetValue: 6,
+    }, 'A build for 6 already exists');
+  });
+
+  it('cannot Stay at a target value already built by the opponent', () => {
+    const state = makeState({
+      playerOneHand: ['hearts-7', 'spades-7'],
+      floor: ['clubs-3', 'diamonds-4'],
+      builds: [{
+        id: 'build-1', targetValue: 7, ownerPlayerId: 'player-2', secured: false,
+        cards: ['hearts-5', 'diamonds-2'],
+      }],
+    });
+
+    expectIllegal(state, {
+      type: 'stay-build',
+      playerId: 'player-1',
+      playedCardId: 'hearts-7',
+      floorCardIds: ['clubs-3', 'diamonds-4'],
+    }, 'A build for 7 already exists');
+  });
+
+  it('cannot manipulate a build into a target value already used by another build', () => {
+    const state = makeState({
+      playerOneHand: ['spades-1', 'diamonds-7'],
+      builds: [
+        { id: 'build-1', targetValue: 6, ownerPlayerId: 'player-2', secured: false, cards: ['clubs-5', 'diamonds-1'] },
+        { id: 'build-2', targetValue: 7, ownerPlayerId: 'player-1', secured: false, cards: ['hearts-5', 'clubs-2'] },
+      ],
+    });
+
+    expectIllegal(state, {
+      type: 'manipulate-build',
+      playerId: 'player-1',
+      buildId: 'build-1',
+      cards: [{ source: 'hand', cardId: 'spades-1' }],
+      newTargetValue: 7,
+    }, 'A build for 7 already exists');
+  });
+
   it('stores a build group from larger bottom card to smaller top card', () => {
     const state = makeState({
       playerOneHand: ['spades-9', 'diamonds-10'],

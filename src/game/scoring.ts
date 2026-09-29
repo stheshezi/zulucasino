@@ -1,4 +1,4 @@
-import { Card, GameScore, GameState, PlayerId, ScoreBreakdown, TeamId } from './types';
+import { Card, GameScore, GameState, PlayerId, ScoreBreakdown, TeamId } from './types.js';
 
 function emptyBreakdown(): ScoreBreakdown {
   return { aces: 0, tenOfDiamonds: 0, twoOfSpades: 0, spades: 0, cards: 0, total: 0 };

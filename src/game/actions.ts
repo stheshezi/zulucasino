@@ -1,6 +1,6 @@
-import { calculateScore } from './scoring';
-import { orderBuildGroup } from './builds';
-import { assertValidGameState } from './validation';
+import { calculateScore } from './scoring.js';
+import { orderBuildGroup } from './builds.js';
+import { assertValidGameState } from './validation.js';
 import {
   BeginMoveInput,
   Build,
@@ -13,7 +13,7 @@ import {
   PendingMove,
   PlayerId,
   ValidationResult,
-} from './types';
+} from './types.js';
 
 export class IllegalMoveError extends Error {
   constructor(message: string) {
@@ -162,6 +162,12 @@ function sumCards(cards: Card[]): number {
   return cards.reduce((total, card) => total + card.value, 0);
 }
 
+function requireUniqueBuildTarget(state: GameState, targetValue: number, exceptBuildId?: string): void {
+  if (state.builds.some((build) => build.id !== exceptBuildId && build.targetValue === targetValue)) {
+    illegal(`A build for ${targetValue} already exists. Only one build of each value may be on the table.`);
+  }
+}
+
 function findSubset(cards: Card[], target: number): Card[] | null {
   if (target === 0) return [];
   for (let mask = 1; mask < 1 << cards.length; mask += 1) {
@@ -185,6 +191,7 @@ function createBuild(
   secured: boolean,
   orderedCards: Card[],
 ): void {
+  requireUniqueBuildTarget(state, targetValue);
   state.builds.push({
     id: `build-${state.nextBuildSequence}`,
     targetValue,
@@ -277,6 +284,7 @@ function validateBeginMode(state: GameState, input: BeginMoveInput, handCard: Ca
       }
       break;
     case 'normal-build':
+      requireUniqueBuildTarget(state, normalized.targetValue);
       if (build) illegal('A normal build starts from loose public cards.');
       if (normalized.targetValue <= handCard.value) illegal('A normal build must increase to its target value.');
       if (retainedMatchingCards(state, input.playerId, normalized.targetValue, handCard.id).length === 0) {
@@ -284,6 +292,7 @@ function validateBeginMode(state: GameState, input: BeginMoveInput, handCard: Ca
       }
       break;
     case 'stay':
+      requireUniqueBuildTarget(state, normalized.targetValue);
       if (normalized.targetValue !== handCard.value) illegal('Stay must use the matching target value.');
       if (retainedMatchingCards(state, input.playerId, normalized.targetValue, handCard.id).length === 0) {
         illegal('Stay requires another matching target card to remain in hand.');
@@ -298,6 +307,7 @@ function validateBeginMode(state: GameState, input: BeginMoveInput, handCard: Ca
       break;
     case 'manipulate-build':
       if (!build || controlsBuild(state, input.playerId, build)) illegal('Only an opponent build may be manipulated.');
+      requireUniqueBuildTarget(state, normalized.targetValue, build.id);
       if (build.secured) illegal('A secured build cannot be manipulated.');
       if (build.targetValue === 10) illegal('A 10-build cannot be manipulated upward.');
       if (normalized.targetValue <= build.targetValue || normalized.targetValue > 10) {

@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
-import { Show, SignInButton, SignUpButton, UserButton } from '@clerk/react';
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
+import { Show, SignInButton, SignUpButton, UserButton, useAuth } from '@clerk/react';
 import {
   applyGameAction,
   canStartNextRound,
@@ -10,6 +10,7 @@ import {
   commitPendingMove,
   createInitialGame,
   GameMode,
+  GameAction,
   GameState,
   getCapturePlan,
   getRequiredExposedGroup,
@@ -40,7 +41,7 @@ const SAVED_GAME_KEY = 'zulu-casino.active-game.v1';
 const SAVED_HISTORY_KEY = 'zulu-casino.game-history.v1';
 const BOT_DIFFICULTY_KEY = 'zulu-casino.bot-difficulty.v1';
 const MODE_LABELS: Record<GameMode, string> = {
-  'classic-1v1': 'Classic Duel',
+  'classic-1v1': 'Learning with Bot',
   'three-hand-rush': '3-Hand Rush',
   'three-hand-qualifier': 'Qualifier Rotation',
   'partners-2v2': 'Partners 2v2',
@@ -107,7 +108,31 @@ interface TableAnimationState {
   cardSequence: number;
 }
 
+interface OnlineMatch {
+  matchId: string;
+  opponent: { displayName: string };
+  participants: { playerId: string; displayName: string }[];
+  mode: GameMode;
+}
+
+type OnlineMoveCommand =
+  | { type: 'action'; action: GameAction }
+  | { type: 'resolve-public'; refs: CaptureCardRef[]; purpose?: 'primary' | 'extra-capture' | 'additional-build-group' }
+  | { type: 'commit' }
+  | { type: 'rematch' }
+  | { type: 'qualifier-advance' }
+  | { type: 'qualifier-return' };
+
+interface OnlineMatchResponse {
+  ok: boolean;
+  error?: string;
+  game?: GameState;
+  replay?: GameState[];
+  spectator?: boolean;
+}
+
 export default function App() {
+  const { getToken } = useAuth();
   const [game, setGame] = useState<GameState>(loadActiveGame);
   const [message, setMessage] = useState('Your active table is ready.');
   const [selectedHandId, setSelectedHandId] = useState<CardId | null>(null);
@@ -126,6 +151,12 @@ export default function App() {
   const [preferences, setPreferences] = useState<GamePreferences>(loadGamePreferences);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [friendsOpen, setFriendsOpen] = useState(false);
+  const [onlineMatch, setOnlineMatch] = useState<OnlineMatch | null>(null);
+  const [onlineBusy, setOnlineBusy] = useState(false);
+  const [replayStates, setReplayStates] = useState<GameState[] | null>(null);
+  const [replayIndex, setReplayIndex] = useState(0);
+  const joiningMatchIdRef = useRef<string | null>(null);
+  const completedGameBeforeReplayRef = useRef<GameState | null>(null);
   const [tableAnimation, setTableAnimation] = useState<TableAnimationState>({
     phase: 'idle',
     visibleHandCounts: {},
@@ -137,7 +168,8 @@ export default function App() {
   const historyRef = useRef<GameState[]>(loadGameHistory());
   const restoringHistoryRef = useRef(false);
   const [historyDepth, setHistoryDepth] = useState(historyRef.current.length);
-  const validation = useMemo(() => validateGameState(game), [game]);
+  const localValidation = useMemo(() => validateGameState(game), [game]);
+  const validation = onlineMatch ? { valid: true, errors: [] } : localValidation;
   const viewer = game.players[VIEWER_PLAYER_ID];
   const publicPlayerIds = game.turnOrder.filter((id) => id !== VIEWER_PLAYER_ID);
   const defaultOpponentId = publicPlayerIds.find((id) => (
@@ -157,6 +189,72 @@ export default function App() {
   const selectedHand = viewer.hand.find((card) => card.id === selectedHandId) ?? null;
   const isAnimating = tableAnimation.phase !== 'idle';
 
+  const requestMatch = useCallback(async (
+    matchId: string,
+    init?: RequestInit,
+    includeReplay = false,
+  ): Promise<OnlineMatchResponse> => {
+    const token = await getToken();
+    if (!token) throw new Error('Sign in to open this online match.');
+    const replayQuery = includeReplay ? '&replay=1' : '';
+    const response = await fetch(`/api/matches?matchId=${encodeURIComponent(matchId)}${replayQuery}`, {
+      ...init,
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+        ...init?.headers,
+      },
+    });
+    const data = await response.json().catch(() => ({}));
+    return { ...data, ok: response.ok } as OnlineMatchResponse;
+  }, [getToken]);
+
+  const handleJoinMatch = useCallback(async (match: OnlineMatch) => {
+    if (joiningMatchIdRef.current === match.matchId || onlineMatch?.matchId === match.matchId) return;
+    joiningMatchIdRef.current = match.matchId;
+    setOnlineBusy(true);
+    setMessage('Connecting to the shared table...');
+    try {
+      const response = await requestMatch(match.matchId);
+      if (!response.ok || !response.game) throw new Error(response.error || 'The online table could not be opened.');
+      setGame(response.game);
+      setOnlineMatch(match);
+      setQualifierDuel(response.spectator ? { spectating: true } : null);
+      setFriendsOpen(false);
+      clearSelection();
+      setMessage(`Online table with ${match.opponent.displayName} is ready.`);
+    } catch (error) {
+      joiningMatchIdRef.current = null;
+      setMessage(error instanceof Error ? error.message : 'The online table could not be opened.');
+      throw error;
+    } finally {
+      setOnlineBusy(false);
+    }
+  }, [onlineMatch, requestMatch]);
+
+  useEffect(() => {
+    if (!onlineMatch || replayStates) return;
+    let cancelled = false;
+    const refreshMatch = async () => {
+      try {
+        const response = await requestMatch(onlineMatch.matchId);
+        if (!response.ok || !response.game || cancelled) return;
+        setGame((current) => response.game!.revision > current.revision ? response.game! : current);
+        setQualifierDuel((current) => {
+          if (Boolean(current?.spectating) === Boolean(response.spectator)) return current;
+          return response.spectator ? { spectating: true } : null;
+        });
+      } catch {
+        if (!cancelled) setMessage('Online table is reconnecting.');
+      }
+    };
+    const timer = window.setInterval(() => void refreshMatch(), 2000);
+    return () => {
+      cancelled = true;
+      window.clearInterval(timer);
+    };
+  }, [onlineMatch, replayStates, requestMatch]);
+
   useEffect(() => {
     gameSounds.setEnabled(preferences.soundEffects);
     gameSounds.preload();
@@ -168,6 +266,10 @@ export default function App() {
   }, []);
 
   useEffect(() => {
+    if (replayStates) {
+      previousPhaseRef.current = game.phase;
+      return;
+    }
     if (previousPhaseRef.current !== 'complete' && game.phase === 'complete' && game.score) {
       const viewerWon = game.score.winnerPlayerId === VIEWER_PLAYER_ID || (
         game.score.winnerTeamId && game.score.winnerTeamId === game.playerTeams?.[VIEWER_PLAYER_ID]
@@ -175,7 +277,7 @@ export default function App() {
       gameSounds.play(viewerWon ? 'win' : 'lose', 0.65);
     }
     previousPhaseRef.current = game.phase;
-  }, [game.phase, game.playerTeams, game.score]);
+  }, [game.phase, game.playerTeams, game.score, replayStates]);
 
   function clearAnimationTimers() {
     animationTimersRef.current.forEach((timer) => window.clearTimeout(timer));
@@ -249,10 +351,12 @@ export default function App() {
   }
 
   useEffect(() => {
+    if (onlineMatch) return;
     window.localStorage.setItem(SAVED_GAME_KEY, JSON.stringify(game));
-  }, [game]);
+  }, [game, onlineMatch]);
 
   useEffect(() => {
+    if (onlineMatch) return;
     if (restoringHistoryRef.current) {
       restoringHistoryRef.current = false;
       return;
@@ -265,7 +369,7 @@ export default function App() {
       window.localStorage.setItem(SAVED_HISTORY_KEY, JSON.stringify(historyRef.current));
       setHistoryDepth(historyRef.current.length);
     }
-  }, [game]);
+  }, [game, onlineMatch]);
 
   function clearSelection() {
     setSelectedHandId(null);
@@ -279,7 +383,30 @@ export default function App() {
     setPlacementActive(false);
   }
 
-  function transition(action: (current: GameState) => GameState, successMessage: string) {
+  function transition(
+    action: (current: GameState) => GameState,
+    successMessage: string,
+    onlineCommand?: (current: GameState) => OnlineMoveCommand,
+  ) {
+    if (replayStates) return;
+    if (onlineMatch) {
+      if (!onlineCommand || onlineBusy) return;
+      setOnlineBusy(true);
+      void requestMatch(onlineMatch.matchId, {
+        method: 'POST',
+        body: JSON.stringify({ expectedRevision: game.revision, command: onlineCommand(game) }),
+      }).then((response) => {
+        if (response.game) {
+          setGame((current) => response.game!.revision >= current.revision ? response.game! : current);
+        }
+        if (!response.ok) throw new Error(response.error || 'The online move could not be completed.');
+        setMessage(successMessage);
+        clearSelection();
+      }).catch((error: unknown) => {
+        setMessage(error instanceof Error ? error.message : 'The online move could not be completed.');
+      }).finally(() => setOnlineBusy(false));
+      return;
+    }
     setGame((current) => {
       try {
         const next = action(current);
@@ -297,7 +424,7 @@ export default function App() {
   }
 
   useEffect(() => {
-    if (game.phase === 'complete' || partnerStayOffer || isAnimating) return;
+    if (onlineMatch || game.phase === 'complete' || partnerStayOffer || isAnimating) return;
     if (canStartNextRound(game)) {
       const timer = window.setTimeout(() => {
         setGame((current) => {
@@ -396,12 +523,12 @@ export default function App() {
       window.clearTimeout(timer);
       timers.forEach((scheduled) => window.clearTimeout(scheduled));
     };
-  }, [botDifficulty, game.currentPlayer, game.phase, game.revision, partnerStayOffer, qualifierDuel?.spectating, isAnimating]);
+  }, [botDifficulty, game.currentPlayer, game.phase, game.revision, onlineMatch, partnerStayOffer, qualifierDuel?.spectating, isAnimating]);
 
   function handleDifficultyChange(difficulty: BotDifficulty) {
     window.localStorage.setItem(BOT_DIFFICULTY_KEY, difficulty);
     setBotDifficulty(difficulty);
-    setMessage(`Player 2 learning level set to ${difficulty}.`);
+    setMessage(`Bot difficulty set to ${difficulty}.`);
   }
 
   function selectedPublicRefs(): CaptureCardRef[] {
@@ -442,6 +569,10 @@ export default function App() {
     transition(
       (current) => applyGameAction(current, { type: 'drop', playerId: VIEWER_PLAYER_ID, cardId: card.id }),
       `You dropped ${card.value} to the floor.`,
+      () => ({
+        type: 'action',
+        action: { type: 'drop', playerId: VIEWER_PLAYER_ID, cardId: card.id },
+      }),
     );
     clearSelection();
   }
@@ -455,7 +586,7 @@ export default function App() {
       ? ownBuild.id
       : null;
     const buildToTakeId = selectedBuildId ?? forcedOwnBuildId;
-    transition((current) => {
+    const createAction = (current: GameState): GameAction => {
       const refsById = new Map(refs.map((ref) => [ref.cardId, ref]));
       const prioritizedRefs = [
         ...refs.filter((ref) => ref.source === 'floor' && current.floor.find(
@@ -470,7 +601,7 @@ export default function App() {
         : current.players[ref.playerId].captured.at(-1)!);
       const plan = getCapturePlan(selectedCards, card.value);
       if (!plan && refs.length) throw new Error(`The selected public cards cannot be grouped into ${card.value}s.`);
-      return applyGameAction(current, {
+      return {
         type: 'capture',
         playerId: VIEWER_PLAYER_ID,
         playedCardId: card.id,
@@ -481,10 +612,12 @@ export default function App() {
             cards: group.map((cardId) => refsById.get(cardId)!),
           })),
         ],
-      });
-    }, buildToTakeId
+      };
+    };
+    transition((current) => applyGameAction(current, createAction(current)), buildToTakeId
       ? `Build ${card.value} taken. Every matching exposed-top game was taken first.`
-      : `All selected ${card.value}-groups taken.`);
+      : `All selected ${card.value}-groups taken.`,
+    (current) => ({ type: 'action', action: createAction(current) }));
     clearSelection();
   }
 
@@ -503,14 +636,25 @@ export default function App() {
         type: 'cards' as const,
         cards: [{ source: 'floor' as const, cardId: floorCard.id }],
       })),
-    }), `You took the matching ${card.value}${matchingFloorCards.length > 1 ? 's' : ''}.`);
+    }), `You took the matching ${card.value}${matchingFloorCards.length > 1 ? 's' : ''}.`, () => ({
+      type: 'action',
+      action: {
+        type: 'capture',
+        playerId: VIEWER_PLAYER_ID,
+        playedCardId: card.id,
+        groups: matchingFloorCards.map((floorCard) => ({
+          type: 'cards' as const,
+          cards: [{ source: 'floor' as const, cardId: floorCard.id }],
+        })),
+      },
+    }));
     clearSelection();
   }
 
   function handleBuildFromLoose() {
     const card = requireSelectedHand();
     const refs = selectedPublicRefs();
-    transition((current) => {
+    const createAction = (current: GameState): GameAction => {
       const publicCards = refs.map((ref) => {
         if (ref.source === 'floor') {
           const loose = current.floor.find((candidate) => candidate.id === ref.cardId);
@@ -525,7 +669,7 @@ export default function App() {
       const plan = getLooseBuildPlan(card, publicCards, current.players[VIEWER_PLAYER_ID].hand);
       if (!plan) throw new Error('Those selected cards do not form complete groups for a supported build.');
       const refsById = new Map(refs.map((ref) => [ref.cardId, ref]));
-      return applyGameAction(current, {
+      return {
         type: 'create-build',
         playerId: VIEWER_PLAYER_ID,
         playedCardId: card.id,
@@ -535,8 +679,13 @@ export default function App() {
           group.map((cardId) => refsById.get(cardId)!)
         )),
         targetValue: plan.targetValue,
-      });
-    }, `Build ${getLooseBuildPlan(card, selectedBuildPublicCards, viewer.hand)?.targetValue ?? ''} created.`);
+      };
+    };
+    transition(
+      (current) => applyGameAction(current, createAction(current)),
+      `Build ${getLooseBuildPlan(card, selectedBuildPublicCards, viewer.hand)?.targetValue ?? ''} created.`,
+      (current) => ({ type: 'action', action: createAction(current) }),
+    );
     clearSelection();
   }
 
@@ -554,6 +703,15 @@ export default function App() {
         floorCardIds: selectedFloorIds,
       }),
       `Stay ${card.value} declared.`,
+      () => ({
+        type: 'action',
+        action: {
+          type: 'stay-build',
+          playerId: VIEWER_PLAYER_ID,
+          playedCardId: card.id,
+          floorCardIds: selectedFloorIds,
+        },
+      }),
     );
     clearSelection();
   }
@@ -581,16 +739,16 @@ export default function App() {
     const card = requireSelectedHand();
     const refs = selectedPublicRefs();
     const activeBuildId = buildIdOverride ?? selectedBuildId;
-    transition((current) => {
+    const createAction = (current: GameState): GameAction => {
       if (!activeBuildId) throw new Error('Select a build first.');
       if (mode === 'secure-build') {
-        return applyGameAction(current, {
+        return {
           type: mode,
           playerId: VIEWER_PLAYER_ID,
           buildId: activeBuildId,
           cardId: card.id,
           publicGroups: refs.length ? [refs] : undefined,
-        });
+        };
       }
       const cards = [
         { source: 'hand' as const, cardId: card.id },
@@ -607,7 +765,7 @@ export default function App() {
           throw new Error(`The selected public cards do not form complete groups for Build ${build.targetValue}.`);
         }
         const refsById = new Map(refs.map((ref) => [ref.cardId, ref]));
-        return applyGameAction(current, {
+        return {
           type: mode,
           playerId: VIEWER_PLAYER_ID,
           buildId: activeBuildId,
@@ -618,7 +776,7 @@ export default function App() {
           additionalPublicGroups: plan.additionalFloorGroups.map((group) => (
             group.map((cardId) => refsById.get(cardId)!)
           )),
-        });
+        };
       }
       const build = current.builds.find((candidate) => candidate.id === activeBuildId);
       if (!build) throw new Error('The selected build no longer exists.');
@@ -630,14 +788,19 @@ export default function App() {
       }, 0);
       const inferredTarget = build.targetValue + card.value + publicValue;
       if (inferredTarget > 10) throw new Error('This raised build would be higher than 10.');
-      return applyGameAction(current, {
+      return {
         type: mode,
         playerId: VIEWER_PLAYER_ID,
         buildId: activeBuildId,
         cards,
         newTargetValue: inferredTarget as GameState['builds'][number]['targetValue'],
-      });
-    }, mode === 'secure-build' ? `Stay ${card.value} completed.` : `${mode.replaceAll('-', ' ')} completed.`);
+      };
+    };
+    transition(
+      (current) => applyGameAction(current, createAction(current)),
+      mode === 'secure-build' ? `Stay ${card.value} completed.` : `${mode.replaceAll('-', ' ')} completed.`,
+      (current) => ({ type: 'action', action: createAction(current) }),
+    );
     clearSelection();
   }
 
@@ -661,7 +824,18 @@ export default function App() {
         { source: 'hand', cardId: handCard.id },
         { source: 'exposed', playerId: opponent.id, cardId: exposed.id },
       ],
-    }), `${exposed.value} + ${handCard.value} continued and secured Build ${ownBuild.targetValue}.`);
+    }), `${exposed.value} + ${handCard.value} continued and secured Build ${ownBuild.targetValue}.`, () => ({
+      type: 'action',
+      action: {
+        type: 'continue-build',
+        playerId: VIEWER_PLAYER_ID,
+        buildId: ownBuild.id,
+        cards: [
+          { source: 'hand', cardId: handCard.id },
+          { source: 'exposed', playerId: opponent.id, cardId: exposed.id },
+        ],
+      },
+    }));
     clearSelection();
   }
 
@@ -721,7 +895,7 @@ export default function App() {
         ))
       : undefined;
     if (
-      teammate && botDifficulty !== 'easy' && viewerControlsBuild(build) &&
+      !onlineMatch && teammate && botDifficulty !== 'easy' && viewerControlsBuild(build) &&
       game.players[teammate].hand.some((card) => card.value === build.targetValue)
     ) {
       transition((current) => applyGameAction(current, {
@@ -730,7 +904,16 @@ export default function App() {
         partnerPlayerId: teammate,
         buildId: build.id,
         cardId: handCard.id,
-      }), `${game.players[teammate].name} calls Stay ${build.targetValue} and assumes responsibility.`);
+      }), `${game.players[teammate].name} calls Stay ${build.targetValue} and assumes responsibility.`, () => ({
+        type: 'action',
+        action: {
+          type: 'partner-stay',
+          playerId: VIEWER_PLAYER_ID,
+          partnerPlayerId: teammate,
+          buildId: build.id,
+          cardId: handCard.id,
+        },
+      }));
       clearSelection();
       return;
     }
@@ -739,7 +922,15 @@ export default function App() {
       playerId: VIEWER_PLAYER_ID,
       playedCardId: handCard.id,
       groups: [{ type: 'build', buildId: build.id }],
-    }), `You took Build ${build.targetValue} with ${handCard.value}.`);
+    }), `You took Build ${build.targetValue} with ${handCard.value}.`, () => ({
+      type: 'action',
+      action: {
+        type: 'capture',
+        playerId: VIEWER_PLAYER_ID,
+        playedCardId: handCard.id,
+        groups: [{ type: 'build', buildId: build.id }],
+      },
+    }));
     clearSelection();
   }
 
@@ -751,7 +942,16 @@ export default function App() {
       partnerPlayerId: VIEWER_PLAYER_ID,
       buildId: partnerStayOffer.buildId,
       cardId: partnerStayOffer.cardId,
-    }), 'You called Stay. The played card remains on the team build and responsibility is now yours.');
+    }), 'You called Stay. The played card remains on the team build and responsibility is now yours.', () => ({
+      type: 'action',
+      action: {
+        type: 'partner-stay',
+        playerId: partnerStayOffer.actorPlayerId,
+        partnerPlayerId: VIEWER_PLAYER_ID,
+        buildId: partnerStayOffer.buildId,
+        cardId: partnerStayOffer.cardId,
+      },
+    }));
     setPartnerStayOffer(null);
     clearSelection();
   }
@@ -812,9 +1012,9 @@ export default function App() {
 
     if (legalChoices.length === 1 && !hasTakeExtension && !hasBuildExtension) {
       const choice = legalChoices[0];
-      transition((current) => {
+      const createAction = (current: GameState): GameAction => {
         if (choice === 'take') {
-          return applyGameAction(current, {
+          return {
             type: 'capture',
             playerId: VIEWER_PLAYER_ID,
             playedCardId: handCard.id,
@@ -822,25 +1022,31 @@ export default function App() {
               type: 'cards',
               cards: floorCardIds.map((cardId) => ({ source: 'floor' as const, cardId })),
             }],
-          });
+          };
         }
         if (choice === 'stay') {
-          return applyGameAction(current, {
+          return {
             type: 'stay-build',
             playerId: VIEWER_PLAYER_ID,
             playedCardId: handCard.id,
             floorCardIds,
-          });
+          };
         }
-        return applyGameAction(current, {
+        const plan = getLooseBuildPlan(handCard, looseCards, current.players[VIEWER_PLAYER_ID].hand)!;
+        return {
           type: 'create-build',
           playerId: VIEWER_PLAYER_ID,
           playedCardId: handCard.id,
-          floorCardIds: getLooseBuildPlan(handCard, looseCards, viewer.hand)!.primaryFloorCardIds,
-          additionalFloorGroups: getLooseBuildPlan(handCard, looseCards, viewer.hand)!.additionalFloorGroups,
+          floorCardIds: plan.primaryFloorCardIds,
+          additionalFloorGroups: plan.additionalFloorGroups,
           targetValue: buildTarget as GameState['builds'][number]['targetValue'],
-        });
-      }, choice === 'take' ? `You took ${handCard.value}.` : choice === 'stay' ? `Stay ${handCard.value} declared.` : `Build ${buildTarget} created.`);
+        };
+      };
+      transition(
+        (current) => applyGameAction(current, createAction(current)),
+        choice === 'take' ? `You took ${handCard.value}.` : choice === 'stay' ? `Stay ${handCard.value} declared.` : `Build ${buildTarget} created.`,
+        (current) => ({ type: 'action', action: createAction(current) }),
+      );
       clearSelection();
       return;
     }
@@ -869,6 +1075,7 @@ export default function App() {
     transition(
       (current) => resolvePendingPublicGroup(current, VIEWER_PLAYER_ID, refs, purpose),
       'Public cards resolved. Newly exposed top card is now live.',
+      () => ({ type: 'resolve-public', refs, purpose }),
     );
     setSelectedFloorIds([]);
     setExposedSelected(false);
@@ -883,6 +1090,7 @@ export default function App() {
     transition(
       (current) => resolvePendingPublicGroup(current, VIEWER_PLAYER_ID, refs, 'extra-capture'),
       'Required matching public card resolved.',
+      () => ({ type: 'resolve-public', refs, purpose: 'extra-capture' }),
     );
   }
 
@@ -890,6 +1098,7 @@ export default function App() {
     transition(
       (current) => commitPendingMove(current, VIEWER_PLAYER_ID),
       'Hand card committed and move finalized.',
+      () => ({ type: 'commit' }),
     );
     clearSelection();
   }
@@ -910,8 +1119,65 @@ export default function App() {
     beginRoundPresentation(next);
   }
 
+  function handleOnlineRematch() {
+    if (!onlineMatch || replayStates || qualifierDuel?.spectating || onlineMatch.mode === 'three-hand-qualifier') return;
+    transition(
+      (current) => current,
+      'A fresh shared deal is ready.',
+      () => ({ type: 'rematch' }),
+    );
+  }
+
+  async function handleReviewGame() {
+    if (!onlineMatch || game.phase !== 'complete' || onlineBusy || replayStates) return;
+    setOnlineBusy(true);
+    try {
+      const response = await requestMatch(onlineMatch.matchId, undefined, true);
+      if (!response.ok || !response.replay?.length) {
+        throw new Error(response.error || 'No completed-game replay is available yet.');
+      }
+      completedGameBeforeReplayRef.current = game;
+      setReplayStates(response.replay);
+      setReplayIndex(response.replay.length - 1);
+      setGame(response.replay.at(-1)!);
+      clearSelection();
+      setMessage('Reviewing the completed game. Both hands are visible.');
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : 'The game replay could not be loaded.');
+    } finally {
+      setOnlineBusy(false);
+    }
+  }
+
+  function handleReplayStep(index: number) {
+    if (!replayStates) return;
+    const nextIndex = Math.max(0, Math.min(index, replayStates.length - 1));
+    setReplayIndex(nextIndex);
+    setGame(replayStates[nextIndex]);
+  }
+
+  function handleExitReplay() {
+    const completedGame = completedGameBeforeReplayRef.current;
+    if (completedGame) {
+      previousPhaseRef.current = 'complete';
+      setGame(completedGame);
+    }
+    completedGameBeforeReplayRef.current = null;
+    setReplayStates(null);
+    setReplayIndex(0);
+    setMessage('Game review closed.');
+  }
+
   function handleQualifierAdvance() {
     if (game.mode !== 'three-hand-qualifier' || !game.score) return;
+    if (onlineMatch) {
+      transition(
+        (current) => current,
+        'The qualifier table is advancing to the playoff.',
+        () => ({ type: 'qualifier-advance' }),
+      );
+      return;
+    }
     if (game.score.isDraw) {
       handleNewGame('three-hand-qualifier');
       setMessage('The draw resets all three players into a fresh qualifier deal.');
@@ -936,6 +1202,15 @@ export default function App() {
     setQualifierDuel({ spectating: !viewerQualified });
     clearSelection();
     setMessage(`${game.players[runnerUpId].name} starts the qualifying 1v1. ${game.players[ranking[2]].name} waits.`);
+  }
+
+  function handleOnlineQualifierReturn() {
+    if (!onlineMatch || onlineMatch.mode !== 'three-hand-qualifier' || replayStates) return;
+    transition(
+      (current) => current,
+      'All players are back at the 3-Hand qualifier table.',
+      () => ({ type: 'qualifier-return' }),
+    );
   }
 
   function handleUndoTurn() {
@@ -964,7 +1239,7 @@ export default function App() {
     setMessage('Your last turn and Player 2 response were undone. Try the move again.');
   }
 
-  const playerCanAct = game.currentPlayer === VIEWER_PLAYER_ID && game.phase !== 'complete' && !qualifierDuel?.spectating && !isAnimating;
+  const playerCanAct = game.currentPlayer === VIEWER_PLAYER_ID && game.phase !== 'complete' && !qualifierDuel?.spectating && !isAnimating && !onlineBusy && !replayStates;
   const requiredTop = getRequiredMatchingBuildGroup(game) ?? getRequiredExposedGroup(game);
   const selectedLooseCards = selectedFloorIds
     .map((cardId) => game.floor.find((card) => card.id === cardId))
@@ -1001,6 +1276,10 @@ export default function App() {
   const selectedCapturePlan = selectedHand
     ? getCapturePlan(capturePlanCards, selectedHand.value)
     : null;
+  const currentMode = game.mode ?? 'classic-1v1';
+  const currentModeLabel = onlineMatch && currentMode === 'classic-1v1'
+    ? 'Classic 1v1'
+    : MODE_LABELS[currentMode];
   const partnerBuildBlocksTake = Boolean(
     selectedBuild && viewerControlsBuild(selectedBuild) && selectedBuild.ownerPlayerId !== VIEWER_PLAYER_ID,
   );
@@ -1021,7 +1300,9 @@ export default function App() {
       <header className="top-bar">
         <div className="brand-block">
           <span className="brand-mark">ZC</span>
-          <div><h1>Zulu Casino</h1><p>{qualifierDuel ? 'Qualifier 1v1 duel' : MODE_LABELS[game.mode ?? 'classic-1v1']} test table</p></div>
+          <div><h1>Zulu Casino</h1><p>{onlineMatch
+            ? `${currentModeLabel} · Online table`
+            : `${qualifierDuel ? 'Qualifier 1v1 duel' : currentModeLabel} test table`}</p></div>
         </div>
         <div className="round-display">
           <span>{game.phase === 'complete'
@@ -1058,26 +1339,30 @@ export default function App() {
               value={qualifierDuel ? 'three-hand-qualifier' : game.mode ?? 'classic-1v1'}
               onChange={(event) => handleNewGame(event.target.value as GameMode)}
               aria-label="Game mode"
-              disabled={isAnimating}
+              disabled={Boolean(onlineMatch) || isAnimating}
             >
               {Object.entries(MODE_LABELS).map(([mode, label]) => (
-                <option key={mode} value={mode}>{label}</option>
+                <option key={mode} value={mode}>
+                  {onlineMatch && mode === 'classic-1v1' ? 'Classic 1v1' : label}
+                </option>
               ))}
             </select>
           </label>
-          <div className="difficulty-control" role="group" aria-label="Player 2 learning level">
-            {(['easy', 'medium', 'hard'] as BotDifficulty[]).map((difficulty) => (
-              <button
-                key={difficulty}
-                className={botDifficulty === difficulty ? 'active' : ''}
-                onClick={() => handleDifficultyChange(difficulty)}
-                aria-pressed={botDifficulty === difficulty}
-                disabled={isAnimating}
-              >
-                {difficulty}
-              </button>
-            ))}
-          </div>
+          {!onlineMatch && !qualifierDuel && (game.mode ?? 'classic-1v1') === 'classic-1v1' && (
+            <div className="difficulty-control" role="group" aria-label="Bot difficulty">
+              {(['easy', 'medium', 'hard'] as BotDifficulty[]).map((difficulty) => (
+                <button
+                  key={difficulty}
+                  className={botDifficulty === difficulty ? 'active' : ''}
+                  onClick={() => handleDifficultyChange(difficulty)}
+                  aria-pressed={botDifficulty === difficulty}
+                  disabled={isAnimating}
+                >
+                  {difficulty[0].toUpperCase() + difficulty.slice(1)}
+                </button>
+              ))}
+            </div>
+          )}
           <div className="settings-wrap">
             <button
               className="secondary-button settings-button"
@@ -1094,12 +1379,21 @@ export default function App() {
               </div>
             )}
           </div>
-          <button className="secondary-button" onClick={handleUndoTurn} disabled={historyDepth < 2 || isAnimating}>Undo my turn</button>
-          <button className="secondary-button" onClick={() => handleNewGame()} disabled={isAnimating}>New deal</button>
+          {!onlineMatch && (
+            <>
+              <button className="secondary-button" onClick={handleUndoTurn} disabled={historyDepth < 2 || isAnimating}>Undo my turn</button>
+              <button className="secondary-button" onClick={() => handleNewGame()} disabled={isAnimating}>New deal</button>
+            </>
+          )}
         </div>
       </header>
 
-      <FriendsPanel open={friendsOpen} onClose={() => setFriendsOpen(false)} />
+      <FriendsPanel
+        open={friendsOpen}
+        onClose={() => setFriendsOpen(false)}
+        onJoinMatch={handleJoinMatch}
+        joinedMatchId={onlineMatch?.matchId ?? null}
+      />
 
       <div className="table-wrap">
         <div className={`table-felt ${isAnimating ? 'interaction-locked' : ''}`} aria-busy={isAnimating}>
@@ -1140,7 +1434,7 @@ export default function App() {
             player={opponent}
             isCurrent={game.currentPlayer === AUTO_PLAYER_ID && game.phase !== 'complete'}
             position="top"
-            hideHand
+            hideHand={!replayStates}
             visibleHandCount={isAnimating ? tableAnimation.visibleHandCounts[opponent.id] ?? 0 : undefined}
             interactionLocked={isAnimating}
             exposedSelected={exposedSelected}
@@ -1457,7 +1751,7 @@ export default function App() {
             }}
           />
 
-          {game.phase === 'complete' && game.score && (
+          {game.phase === 'complete' && game.score && !replayStates && (
             <section className="score-panel score-audit-panel" aria-label="Final score audit">
               <header>
                 <span>Final score audit</span>
@@ -1515,8 +1809,30 @@ export default function App() {
                     : `${game.players[game.score.winnerPlayerId].name} wins`}
                 {' · '}{game.score.combinedPoints} points verified
               </p>
+              {onlineMatch && (
+                <>
+                  <button
+                    className="secondary-button score-next-button"
+                    onClick={handleReviewGame}
+                    disabled={onlineBusy}
+                  >Review game</button>
+                  {onlineMatch.mode === 'three-hand-qualifier' && game.mode === 'classic-1v1' ? (
+                    <button
+                      className="primary-button score-next-button"
+                      onClick={handleOnlineQualifierReturn}
+                      disabled={onlineBusy || Boolean(qualifierDuel?.spectating)}
+                    >Return to 3-Hand</button>
+                  ) : onlineMatch.mode !== 'three-hand-qualifier' && !qualifierDuel?.spectating ? (
+                    <button
+                      className="primary-button score-next-button"
+                      onClick={handleOnlineRematch}
+                      disabled={onlineBusy}
+                    >Rematch</button>
+                  ) : null}
+                </>
+              )}
               {game.mode === 'three-hand-qualifier' && (
-                <button className="primary-button score-next-button" onClick={handleQualifierAdvance}>
+                <button className="primary-button score-next-button" onClick={handleQualifierAdvance} disabled={onlineBusy}>
                   {game.score.isDraw ? 'Replay 3-Hand' : 'Start qualifying 1v1'}
                 </button>
               )}
@@ -1529,6 +1845,36 @@ export default function App() {
           )}
         </div>
       </div>
+
+      {replayStates && (
+        <section className="game-replay-toolbar" aria-label="Game replay controls">
+          <div>
+            <strong>Game review</strong>
+            <span>Step {replayIndex + 1} of {replayStates.length}</span>
+          </div>
+          <button
+            className="secondary-button"
+            onClick={() => handleReplayStep(replayIndex - 1)}
+            disabled={replayIndex === 0}
+            aria-label="Previous game step"
+          >Previous</button>
+          <input
+            type="range"
+            min={0}
+            max={replayStates.length - 1}
+            value={replayIndex}
+            onChange={(event) => handleReplayStep(Number(event.target.value))}
+            aria-label="Replay game step"
+          />
+          <button
+            className="secondary-button"
+            onClick={() => handleReplayStep(replayIndex + 1)}
+            disabled={replayIndex === replayStates.length - 1}
+            aria-label="Next game step"
+          >Next</button>
+          <button className="secondary-button" onClick={handleExitReplay}>Exit review</button>
+        </section>
+      )}
 
       <footer className="status-bar">
         <span className={`integrity-dot ${validation.valid ? 'valid' : 'invalid'}`} />
