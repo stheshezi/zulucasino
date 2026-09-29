@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { createDeck, createInitialGame } from '../src/game/index.js';
-import { createInitialMatchState } from './match-store.js';
+import { createInitialMatchState, initialLobbyAcceptedPlayerIds } from './match-store.js';
 import {
   advanceQualifierState,
   createRematch,
@@ -11,6 +11,18 @@ import {
 } from './matches.js';
 
 describe('online game projection', () => {
+  it('starts a group lobby with its creator already accepted', () => {
+    const participants = [
+      { playerId: 'user-host', displayName: 'Host' },
+      { playerId: 'user-b', displayName: 'Beta' },
+      { playerId: 'user-c', displayName: 'Gamma' },
+    ];
+
+    expect(initialLobbyAcceptedPlayerIds(participants, 'user-host')).toEqual(['user-host']);
+    expect(() => initialLobbyAcceptedPlayerIds(participants, 'user-outsider'))
+      .toThrow('table creator');
+  });
+
   it('creates one seat-stable initial deal for the accepted player pair', () => {
     const participants = [
       { playerId: 'user-a', displayName: 'Alpha' },

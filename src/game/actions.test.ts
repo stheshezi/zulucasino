@@ -341,6 +341,37 @@ describe('build legality', () => {
     expectIntegrity(result);
   });
 
+  it('keeps every existing physical card in place when a build is raised', () => {
+    const state = makeState({
+      playerOneHand: ['spades-2', 'diamonds-8'],
+      builds: [{
+        id: 'build-1',
+        targetValue: 6,
+        ownerPlayerId: 'player-2',
+        secured: false,
+        cards: ['clubs-5', 'diamonds-1'],
+      }],
+    });
+
+    const result = applyGameAction(state, {
+      type: 'manipulate-build',
+      playerId: 'player-1',
+      buildId: 'build-1',
+      cards: [{ source: 'hand', cardId: 'spades-2' }],
+      newTargetValue: 8,
+    });
+
+    expect(result.builds[0].orderedCards.map((card) => card.id)).toEqual([
+      'clubs-5', 'diamonds-1', 'spades-2',
+    ]);
+    expect(result.builds[0]).toMatchObject({
+      targetValue: 8,
+      ownerPlayerId: 'player-1',
+      tablePlayerId: 'player-1',
+    });
+    expectIntegrity(result);
+  });
+
   it('does not allow a secured build to be manipulated', () => {
     const state = makeState({
       playerOneHand: ['spades-1', 'diamonds-7'],

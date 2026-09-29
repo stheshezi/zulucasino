@@ -155,6 +155,7 @@ export default function App() {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [friendsOpen, setFriendsOpen] = useState(false);
   const [onlineMatch, setOnlineMatch] = useState<OnlineMatch | null>(null);
+  const [ignoredOnlineMatchId, setIgnoredOnlineMatchId] = useState<string | null>(null);
   const [onlineBusy, setOnlineBusy] = useState(false);
   const [replayStates, setReplayStates] = useState<GameState[] | null>(null);
   const [replayIndex, setReplayIndex] = useState(0);
@@ -169,6 +170,7 @@ export default function App() {
   const animationTimersRef = useRef<number[]>([]);
   const moveFeedbackTimerRef = useRef<number | null>(null);
   const lastFeedbackRevisionRef = useRef(game.revision);
+  const gameRef = useRef(game);
   const previousPhaseRef = useRef(game.phase);
   const historyRef = useRef<GameState[]>(loadGameHistory());
   const restoringHistoryRef = useRef(false);
@@ -215,6 +217,27 @@ export default function App() {
     }, feedback.choice === 'take' ? 900 : 700);
   }
 
+  function isDealTransition(before: GameState, after: GameState) {
+    return (
+      (before.phase === 'complete' && after.phase === 'round-1') ||
+      (before.phase === 'round-1' && after.phase === 'round-2')
+    );
+  }
+
+  function applyOnlineGame(next: GameState) {
+    const current = gameRef.current;
+    if (next.revision <= current.revision) return;
+    gameRef.current = next;
+    if (isDealTransition(current, next)) {
+      lastFeedbackRevisionRef.current = next.revision;
+      setMoveFeedback(null);
+      beginRoundPresentation(next);
+    } else {
+      showMoveFeedback(current, next);
+    }
+    setGame(next);
+  }
+
   const requestMatch = useCallback(async (
     matchId: string,
     init?: RequestInit,
@@ -238,18 +261,21 @@ export default function App() {
   const handleJoinMatch = useCallback(async (match: OnlineMatch) => {
     if (joiningMatchIdRef.current === match.matchId || onlineMatch?.matchId === match.matchId) return;
     joiningMatchIdRef.current = match.matchId;
+    setIgnoredOnlineMatchId(null);
     setOnlineBusy(true);
     setMessage('Connecting to the shared table...');
     try {
       const response = await requestMatch(match.matchId);
       if (!response.ok || !response.game) throw new Error(response.error || 'The online table could not be opened.');
       lastFeedbackRevisionRef.current = response.game.revision;
+      gameRef.current = response.game;
       setGame(response.game);
       setOnlineMatch(match);
       setQualifierDuel(response.spectator ? { spectating: true } : null);
       setFriendsOpen(false);
       clearSelection();
       setMessage(`Online table with ${match.opponent.displayName} is ready.`);
+      if (response.game.revision === 0) beginRoundPresentation(response.game);
     } catch (error) {
       joiningMatchIdRef.current = null;
       setMessage(error instanceof Error ? error.message : 'The online table could not be opened.');
@@ -266,11 +292,7 @@ export default function App() {
       try {
         const response = await requestMatch(onlineMatch.matchId);
         if (!response.ok || !response.game || cancelled) return;
-        setGame((current) => {
-          if (response.game!.revision <= current.revision) return current;
-          showMoveFeedback(current, response.game!);
-          return response.game!;
-        });
+        applyOnlineGame(response.game);
         setQualifierDuel((current) => {
           if (Boolean(current?.spectating) === Boolean(response.spectator)) return current;
           return response.spectator ? { spectating: true } : null;
@@ -285,6 +307,10 @@ export default function App() {
       window.clearInterval(timer);
     };
   }, [onlineMatch, replayStates, requestMatch]);
+
+  useEffect(() => {
+    gameRef.current = game;
+  }, [game]);
 
   useEffect(() => {
     gameSounds.setEnabled(preferences.soundEffects);
@@ -444,11 +470,7 @@ export default function App() {
         body: JSON.stringify({ expectedRevision: game.revision, command: onlineCommand(game) }),
       }).then((response) => {
         if (response.game) {
-          setGame((current) => {
-            if (response.game!.revision < current.revision) return current;
-            showMoveFeedback(current, response.game!);
-            return response.game!;
-          });
+          applyOnlineGame(response.game);
         }
         if (!response.ok) throw new Error(response.error || 'The online move could not be completed.');
         setMessage(successMessage);
@@ -1181,6 +1203,36 @@ export default function App() {
     );
   }
 
+  async function handleLeaveOnlineTable() {
+    if (!onlineMatch || game.phase !== 'complete' || onlineBusy || replayStates) return;
+    setOnlineBusy(true);
+    try {
+      const token = await getToken();
+      const response = await fetch('/api/challenges', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ action: 'leaveMatch', matchId: onlineMatch.matchId }),
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.error || 'The table could not be left yet.');
+
+      const departedMatchId = onlineMatch.matchId;
+      setIgnoredOnlineMatchId(departedMatchId);
+      setOnlineMatch(null);
+      joiningMatchIdRef.current = null;
+      setFriendsOpen(false);
+      handleNewGame('classic-1v1');
+      setMessage('Online table closed. You can accept a new challenge.');
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : 'The table could not be left yet.');
+    } finally {
+      setOnlineBusy(false);
+    }
+  }
+
   async function handleReviewGame() {
     if (!onlineMatch || game.phase !== 'complete' || onlineBusy || replayStates) return;
     setOnlineBusy(true);
@@ -1446,6 +1498,7 @@ export default function App() {
         onClose={() => setFriendsOpen(false)}
         onJoinMatch={handleJoinMatch}
         joinedMatchId={onlineMatch?.matchId ?? null}
+        ignoredMatchId={ignoredOnlineMatchId}
       />
 
       <div className="table-wrap">
@@ -1876,11 +1929,18 @@ export default function App() {
                       disabled={onlineBusy || Boolean(qualifierDuel?.spectating)}
                     >Return to 3-Hand</button>
                   ) : onlineMatch.mode !== 'three-hand-qualifier' && !qualifierDuel?.spectating ? (
-                    <button
-                      className="primary-button score-next-button"
-                      onClick={handleOnlineRematch}
-                      disabled={onlineBusy}
-                    >Rematch</button>
+                    <>
+                      <button
+                        className="primary-button score-next-button"
+                        onClick={handleOnlineRematch}
+                        disabled={onlineBusy}
+                      >Rematch</button>
+                      <button
+                        className="secondary-button score-next-button"
+                        onClick={handleLeaveOnlineTable}
+                        disabled={onlineBusy}
+                      >Leave table</button>
+                    </>
                   ) : null}
                 </>
               )}

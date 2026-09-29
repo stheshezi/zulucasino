@@ -7,6 +7,7 @@ import {
   createMatchLobby,
   ensureMatchRecord,
   expectedPlayersForMode,
+  isMatchComplete,
 } from './match-store.js';
 
 type ChallengeStatus = 'pending' | 'accepted' | 'declined' | 'cancelled';
@@ -39,10 +40,16 @@ interface ActiveMatch {
   status: 'ready';
 }
 
-interface PlayerNetwork {
+export interface PlayerNetwork {
   friends: PlayerSummary[];
   challenges: Challenge[];
   activeMatch?: ActiveMatch;
+}
+
+export function clearMatchingActiveMatch(network: PlayerNetwork, matchId: string): PlayerNetwork | null {
+  if (!network.activeMatch || network.activeMatch.matchId !== matchId) return null;
+  const { activeMatch: _activeMatch, ...remainingNetwork } = network;
+  return remainingNetwork;
 }
 
 const NETWORK_KEY = 'zuluCasinoNetwork';
@@ -151,6 +158,18 @@ export default async function handler(request: VercelRequest, response: VercelRe
     const body = typeof request.body === 'string' ? JSON.parse(request.body) : request.body;
     const action = body?.action as string | undefined;
 
+    if (action === 'leaveMatch') {
+      const matchId = String(body.matchId ?? '');
+      const network = readNetwork(currentUser);
+      const clearedNetwork = clearMatchingActiveMatch(network, matchId);
+      if (!clearedNetwork) return response.status(404).json({ error: 'That is not your active table.' });
+      if (!await isMatchComplete(matchId)) {
+        return response.status(409).json({ error: 'Finish the game before leaving this table.' });
+      }
+      await writeNetwork(userId, clearedNetwork);
+      return response.status(200).json({ left: true });
+    }
+
     if (action === 'addFriend') {
       const target = await findPlayer(String(body.targetPlayerId ?? ''));
       if (!target || target.id === userId) return response.status(404).json({ error: 'Player not found.' });
@@ -226,7 +245,7 @@ export default async function handler(request: VercelRequest, response: VercelRe
         matchId,
         participants: players,
       }));
-      await createMatchLobby(matchId, players, mode);
+      await createMatchLobby(matchId, players, mode, userId);
       await Promise.all([
         writeNetwork(userId, {
           ...myNetwork,

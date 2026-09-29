@@ -35,6 +35,17 @@ export function createInitialMatchState(participants: MatchParticipant[], mode: 
   return state;
 }
 
+export function initialLobbyAcceptedPlayerIds(
+  participants: MatchParticipant[],
+  creatorPlayerId: string,
+): string[] {
+  const participantIds = new Set(participants.map((participant) => participant.playerId));
+  if (!participantIds.has(creatorPlayerId)) {
+    throw new Error('The table creator must be one of its players.');
+  }
+  return [creatorPlayerId];
+}
+
 export async function ensureMatchRecord(
   matchId: string,
   participants: MatchParticipant[],
@@ -59,17 +70,26 @@ export async function ensureMatchRecord(
   `;
 }
 
-export async function createMatchLobby(matchId: string, participants: MatchParticipant[], mode: GameMode): Promise<void> {
+export async function createMatchLobby(
+  matchId: string,
+  participants: MatchParticipant[],
+  mode: GameMode,
+  creatorPlayerId: string,
+): Promise<void> {
   const databaseUrl = process.env.DATABASE_URL;
   if (!databaseUrl) throw new Error('DATABASE_URL is not configured.');
   const expectedSeats = expectedPlayersForMode(mode);
   if (participants.length !== expectedSeats) throw new Error(`${mode} requires ${expectedSeats} players.`);
   const playerIds = [...new Set(participants.map((participant) => participant.playerId))].sort();
   if (playerIds.length !== expectedSeats) throw new Error('Choose a different account for every seat.');
+  const acceptedPlayerIds = initialLobbyAcceptedPlayerIds(participants, creatorPlayerId);
   const sql = neon(databaseUrl);
   await sql`
-    INSERT INTO zulu_casino_match_lobbies (match_id, game_mode, participant_ids)
-    VALUES (${matchId}, ${mode}, ${JSON.stringify(playerIds)}::jsonb)
+    INSERT INTO zulu_casino_match_lobbies (match_id, game_mode, participant_ids, accepted_player_ids)
+    VALUES (
+      ${matchId}, ${mode}, ${JSON.stringify(playerIds)}::jsonb,
+      ${JSON.stringify(acceptedPlayerIds)}::jsonb
+    )
     ON CONFLICT (match_id) DO NOTHING
   `;
 }
@@ -114,4 +134,17 @@ export async function cancelMatchLobby(matchId: string): Promise<void> {
     SET status = 'cancelled', updated_at = now()
     WHERE match_id = ${matchId} AND status = 'waiting'
   `;
+}
+
+export async function isMatchComplete(matchId: string): Promise<boolean> {
+  const databaseUrl = process.env.DATABASE_URL;
+  if (!databaseUrl) throw new Error('DATABASE_URL is not configured.');
+  const sql = neon(databaseUrl);
+  const rows = await sql`
+    SELECT game_state->>'phase' AS phase
+    FROM zulu_casino_matches
+    WHERE match_id = ${matchId}
+    LIMIT 1
+  `;
+  return rows[0]?.phase === 'complete';
 }

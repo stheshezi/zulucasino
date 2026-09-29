@@ -42,6 +42,7 @@ interface FriendsPanelProps {
     mode: GameMode;
   }) => Promise<void>;
   joinedMatchId: string | null;
+  ignoredMatchId?: string | null;
 }
 
 const EMPTY_NETWORK: NetworkState = { friends: [], incoming: [], outgoing: [] };
@@ -58,7 +59,7 @@ function playerCountForMode(mode: GameMode): number {
   return 3;
 }
 
-export function FriendsPanel({ open, onClose, onJoinMatch, joinedMatchId }: FriendsPanelProps) {
+export function FriendsPanel({ open, onClose, onJoinMatch, joinedMatchId, ignoredMatchId }: FriendsPanelProps) {
   const { user } = useUser();
   const { getToken } = useAuth();
   const [query, setQuery] = useState('');
@@ -115,7 +116,7 @@ export function FriendsPanel({ open, onClose, onJoinMatch, joinedMatchId }: Frie
 
   useEffect(() => {
     const match = network.activeMatch;
-    if (!match || pendingIncoming || joinedMatchId === match.matchId) return;
+    if (!match || pendingIncoming || joinedMatchId === match.matchId || ignoredMatchId === match.matchId) return;
     const currentPlayer: PlayerSummary = {
       playerId: user?.id ?? '',
       displayName: user?.username || user?.fullName || 'Zulu Casino player',
@@ -129,7 +130,7 @@ export function FriendsPanel({ open, onClose, onJoinMatch, joinedMatchId }: Frie
     }).catch((error: unknown) => {
       setMessage(error instanceof Error ? error.message : 'The accepted match could not be opened yet.');
     });
-  }, [joinedMatchId, network.activeMatch, onJoinMatch, pendingIncoming, user]);
+  }, [ignoredMatchId, joinedMatchId, network.activeMatch, onJoinMatch, pendingIncoming, user]);
 
   async function run(action: () => Promise<void>) {
     setBusy(true);

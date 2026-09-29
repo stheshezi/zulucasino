@@ -603,7 +603,7 @@ export function commitPendingMove(state: GameState, playerId: PlayerId): GameSta
     }
     case 'manipulate-build': {
       const build = findBuild(next, move.selectedBuildId!);
-      build.orderedCards = orderBuildGroup([...build.orderedCards, ...move.orderedPublicCards, handCard]);
+      build.orderedCards.push(...orderBuildGroup([...move.orderedPublicCards, handCard]));
       build.targetValue = move.targetValue;
       build.ownerPlayerId = playerId;
       build.ownerTeamId = next.playerTeams?.[playerId];
