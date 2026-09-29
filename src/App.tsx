@@ -29,6 +29,7 @@ import { PlayerArea } from './components/PlayerArea';
 import { PlayingCard } from './components/PlayingCard';
 import { FriendsPanel } from './components/FriendsPanel';
 import { gameSounds } from './audio';
+import { describeMoveFeedback, type MoveFeedback } from './moveFeedback';
 import {
   GamePreferences,
   loadGamePreferences,
@@ -80,6 +81,7 @@ function loadGameHistory(): GameState[] {
 }
 
 interface OpponentMovePreview {
+  actorPlayerId: PlayerId;
   card: Card;
   choice: 'drop' | 'take';
   decisionShown: boolean;
@@ -145,6 +147,7 @@ export default function App() {
   const [draggedExposedId, setDraggedExposedId] = useState<CardId | null>(null);
   const [placementActive, setPlacementActive] = useState(false);
   const [opponentMovePreview, setOpponentMovePreview] = useState<OpponentMovePreview | null>(null);
+  const [moveFeedback, setMoveFeedback] = useState<MoveFeedback | null>(null);
   const [partnerStayOffer, setPartnerStayOffer] = useState<PartnerStayOffer | null>(null);
   const [qualifierDuel, setQualifierDuel] = useState<QualifierDuelState | null>(null);
   const [botDifficulty, setBotDifficulty] = useState<BotDifficulty>(loadBotDifficulty);
@@ -164,6 +167,8 @@ export default function App() {
     cardSequence: 0,
   });
   const animationTimersRef = useRef<number[]>([]);
+  const moveFeedbackTimerRef = useRef<number | null>(null);
+  const lastFeedbackRevisionRef = useRef(game.revision);
   const previousPhaseRef = useRef(game.phase);
   const historyRef = useRef<GameState[]>(loadGameHistory());
   const restoringHistoryRef = useRef(false);
@@ -188,6 +193,27 @@ export default function App() {
   const buildTablePlayerId = (build: GameState['builds'][number]) => build.tablePlayerId ?? build.ownerPlayerId;
   const selectedHand = viewer.hand.find((card) => card.id === selectedHandId) ?? null;
   const isAnimating = tableAnimation.phase !== 'idle';
+  const visibleMoveFeedback = (opponentMovePreview?.decisionShown ?? false)
+    ? opponentMovePreview
+    : moveFeedback;
+
+  function showMoveFeedback(before: GameState, after: GameState) {
+    if (after.revision <= lastFeedbackRevisionRef.current) return;
+    lastFeedbackRevisionRef.current = after.revision;
+    const feedback = describeMoveFeedback(before, after, VIEWER_PLAYER_ID);
+    if (!feedback) return;
+
+    setMoveFeedback(feedback);
+    gameSounds.play(feedback.choice === 'take' ? 'take' : 'card-play', feedback.choice === 'take' ? 0.52 : 0.4);
+    if (feedback.exposedInventory && feedback.revealedCard) {
+      window.setTimeout(() => gameSounds.play('card-flip', 0.35), 260);
+    }
+    if (moveFeedbackTimerRef.current !== null) window.clearTimeout(moveFeedbackTimerRef.current);
+    moveFeedbackTimerRef.current = window.setTimeout(() => {
+      setMoveFeedback(null);
+      moveFeedbackTimerRef.current = null;
+    }, feedback.choice === 'take' ? 900 : 700);
+  }
 
   const requestMatch = useCallback(async (
     matchId: string,
@@ -217,6 +243,7 @@ export default function App() {
     try {
       const response = await requestMatch(match.matchId);
       if (!response.ok || !response.game) throw new Error(response.error || 'The online table could not be opened.');
+      lastFeedbackRevisionRef.current = response.game.revision;
       setGame(response.game);
       setOnlineMatch(match);
       setQualifierDuel(response.spectator ? { spectating: true } : null);
@@ -239,7 +266,11 @@ export default function App() {
       try {
         const response = await requestMatch(onlineMatch.matchId);
         if (!response.ok || !response.game || cancelled) return;
-        setGame((current) => response.game!.revision > current.revision ? response.game! : current);
+        setGame((current) => {
+          if (response.game!.revision <= current.revision) return current;
+          showMoveFeedback(current, response.game!);
+          return response.game!;
+        });
         setQualifierDuel((current) => {
           if (Boolean(current?.spectating) === Boolean(response.spectator)) return current;
           return response.spectator ? { spectating: true } : null;
@@ -261,8 +292,19 @@ export default function App() {
     saveGamePreferences(preferences);
   }, [preferences]);
 
+  useEffect(() => {
+    const unlockAudio = () => gameSounds.unlock();
+    window.addEventListener('pointerdown', unlockAudio, { once: true });
+    window.addEventListener('keydown', unlockAudio, { once: true });
+    return () => {
+      window.removeEventListener('pointerdown', unlockAudio);
+      window.removeEventListener('keydown', unlockAudio);
+    };
+  }, []);
+
   useEffect(() => () => {
     animationTimersRef.current.forEach((timer) => window.clearTimeout(timer));
+    if (moveFeedbackTimerRef.current !== null) window.clearTimeout(moveFeedbackTimerRef.current);
   }, []);
 
   useEffect(() => {
@@ -347,6 +389,10 @@ export default function App() {
   }
 
   function updatePreference(key: keyof GamePreferences) {
+    if (key === 'soundEffects' && !preferences.soundEffects) {
+      gameSounds.setEnabled(true);
+      gameSounds.unlock();
+    }
     setPreferences((current) => ({ ...current, [key]: !current[key] }));
   }
 
@@ -391,18 +437,24 @@ export default function App() {
     if (replayStates) return;
     if (onlineMatch) {
       if (!onlineCommand || onlineBusy) return;
+      gameSounds.unlock();
       setOnlineBusy(true);
       void requestMatch(onlineMatch.matchId, {
         method: 'POST',
         body: JSON.stringify({ expectedRevision: game.revision, command: onlineCommand(game) }),
       }).then((response) => {
         if (response.game) {
-          setGame((current) => response.game!.revision >= current.revision ? response.game! : current);
+          setGame((current) => {
+            if (response.game!.revision < current.revision) return current;
+            showMoveFeedback(current, response.game!);
+            return response.game!;
+          });
         }
         if (!response.ok) throw new Error(response.error || 'The online move could not be completed.');
         setMessage(successMessage);
         clearSelection();
       }).catch((error: unknown) => {
+        gameSounds.play('invalid-move', 0.34);
         setMessage(error instanceof Error ? error.message : 'The online move could not be completed.');
       }).finally(() => setOnlineBusy(false));
       return;
@@ -467,6 +519,7 @@ export default function App() {
         const revealedCard = next.players[VIEWER_PLAYER_ID].captured.at(-1) ?? null;
 
         const preview: OpponentMovePreview = {
+          actorPlayerId: automaticPlayerId,
           card: playedCard,
           choice: captured ? 'take' : 'drop',
           decisionShown: false,
@@ -1478,7 +1531,7 @@ export default function App() {
               return build && build.ownerPlayerId !== AUTO_PLAYER_ID ? game.players[build.ownerPlayerId].name : undefined;
             })()}
             buildSelected={game.builds.some((build) => buildTablePlayerId(build) === AUTO_PLAYER_ID && build.id === selectedBuildId)}
-            buildAnimating={Boolean(opponentMovePreview?.decisionShown && opponentMovePreview.buildId && game.builds.some((build) => buildTablePlayerId(build) === AUTO_PLAYER_ID && build.id === opponentMovePreview.buildId))}
+            buildAnimating={Boolean(visibleMoveFeedback?.buildId && game.builds.some((build) => buildTablePlayerId(build) === AUTO_PLAYER_ID && build.id === visibleMoveFeedback.buildId))}
             showInventoryCount={game.phase === 'complete'}
             onBuildClick={playerCanAct ? () => {
               const build = game.builds.find((candidate) => buildTablePlayerId(candidate) === AUTO_PLAYER_ID);
@@ -1568,8 +1621,8 @@ export default function App() {
               <span className="lane-label">Loose cards</span>
               <div
                 className={`floor-cards ${draggedHandId ? 'drop-ready' : ''} ${
-                  opponentMovePreview?.decisionShown
-                    ? opponentMovePreview.choice === 'take'
+                  visibleMoveFeedback
+                    ? visibleMoveFeedback.choice === 'take'
                       ? 'opponent-take-impact'
                       : 'opponent-drop-impact'
                     : ''
@@ -1600,7 +1653,7 @@ export default function App() {
                     key={card.id}
                     card={card}
                     selected={selectedFloorIds.includes(card.id)}
-                    className={opponentMovePreview?.decisionShown && opponentMovePreview.floorCardIds.includes(card.id) ? 'opponent-choice-card' : undefined}
+                    className={visibleMoveFeedback?.floorCardIds.includes(card.id) ? 'opponent-choice-card' : undefined}
                     draggable={playerCanAct && !selectedHand && !game.pendingMove}
                     onDragStart={playerCanAct && !selectedHand ? () => {
                       setDraggedFloorId(card.id);
@@ -1710,9 +1763,9 @@ export default function App() {
             interactionLocked={isAnimating}
             hideHand={Boolean(qualifierDuel?.spectating)}
             selectedHandCardId={selectedHandId}
-            exposedAnimating={Boolean(opponentMovePreview?.decisionShown && opponentMovePreview.exposedInventory)}
-            exposedActionLabel={opponentMovePreview?.decisionShown && opponentMovePreview.exposedCardTaken
-              ? `Player 2 takes ${opponentMovePreview.exposedCardTaken.value}`
+            exposedAnimating={Boolean(visibleMoveFeedback?.exposedInventory)}
+            exposedActionLabel={visibleMoveFeedback?.exposedCardTaken
+              ? `${game.players[visibleMoveFeedback.actorPlayerId]?.name ?? 'Opponent'} takes ${visibleMoveFeedback.exposedCardTaken.value}`
               : undefined}
             build={game.builds.find((build) => buildTablePlayerId(build) === VIEWER_PLAYER_ID)}
             buildResponsibleName={(() => {
@@ -1723,7 +1776,7 @@ export default function App() {
               ? [opponent.captured.at(-1)!]
               : []}
             buildSelected={game.builds.some((build) => buildTablePlayerId(build) === VIEWER_PLAYER_ID && build.id === selectedBuildId)}
-            buildAnimating={Boolean(opponentMovePreview?.decisionShown && opponentMovePreview.buildId && game.builds.some((build) => buildTablePlayerId(build) === VIEWER_PLAYER_ID && build.id === opponentMovePreview.buildId))}
+            buildAnimating={Boolean(visibleMoveFeedback?.buildId && game.builds.some((build) => buildTablePlayerId(build) === VIEWER_PLAYER_ID && build.id === visibleMoveFeedback.buildId))}
             showInventoryCount={game.phase === 'complete'}
             onBuildClick={playerCanAct ? () => {
               const build = game.builds.find((candidate) => buildTablePlayerId(candidate) === VIEWER_PLAYER_ID);

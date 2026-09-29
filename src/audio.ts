@@ -23,6 +23,7 @@ const SOUND_FILES: Record<GameSound, string> = {
 
 class SoundPlayer {
   private enabled = true;
+  private unlocked = false;
   private readonly sounds = new Map<GameSound, HTMLAudioElement>();
 
   setEnabled(enabled: boolean) {
@@ -33,6 +34,23 @@ class SoundPlayer {
   preload() {
     if (typeof Audio === 'undefined') return;
     (Object.keys(SOUND_FILES) as GameSound[]).forEach((sound) => this.get(sound));
+  }
+
+  unlock() {
+    if (!this.enabled || this.unlocked || typeof Audio === 'undefined') return;
+    const audio = this.get('card-play');
+    const previousVolume = audio.volume;
+    audio.volume = 0;
+    const attempt = audio.play();
+    if (!attempt) return;
+    void attempt.then(() => {
+      audio.pause();
+      audio.currentTime = 0;
+      audio.volume = previousVolume;
+      this.unlocked = true;
+    }).catch(() => {
+      audio.volume = previousVolume;
+    });
   }
 
   play(sound: GameSound, volume = 0.55) {

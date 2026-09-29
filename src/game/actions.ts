@@ -607,6 +607,7 @@ export function commitPendingMove(state: GameState, playerId: PlayerId): GameSta
       build.targetValue = move.targetValue;
       build.ownerPlayerId = playerId;
       build.ownerTeamId = next.playerTeams?.[playerId];
+      build.tablePlayerId = playerId;
       build.secured = false;
       break;
     }

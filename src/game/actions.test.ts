@@ -331,7 +331,12 @@ describe('build legality', () => {
       type: 'manipulate-build', playerId: 'player-1', buildId: 'build-1',
       cards: [{ source: 'hand', cardId: 'spades-1' }], newTargetValue: 7,
     });
-    expect(result.builds[0]).toMatchObject({ targetValue: 7, ownerPlayerId: 'player-1', secured: false });
+    expect(result.builds[0]).toMatchObject({
+      targetValue: 7,
+      ownerPlayerId: 'player-1',
+      tablePlayerId: 'player-1',
+      secured: false,
+    });
     expect(result.builds[0].orderedCards.map((card) => card.id)).toEqual(['clubs-5', 'diamonds-1', 'spades-1']);
     expectIntegrity(result);
   });
