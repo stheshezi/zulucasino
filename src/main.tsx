@@ -2,6 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { ClerkProvider } from '@clerk/react';
 import { Analytics } from '@vercel/analytics/react';
+import { SpeedInsights } from '@vercel/speed-insights/react';
 import App from './App';
 import './styles.css';
 
@@ -13,6 +14,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
     <ClerkProvider publishableKey={publishableKey} afterSignOutUrl="/">
       <App />
       <Analytics />
+      <SpeedInsights />
     </ClerkProvider>
   </React.StrictMode>,
 );
