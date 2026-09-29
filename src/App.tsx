@@ -26,6 +26,7 @@ import {
 } from './game';
 import { PlayerArea } from './components/PlayerArea';
 import { PlayingCard } from './components/PlayingCard';
+import { FriendsPanel } from './components/FriendsPanel';
 import { gameSounds } from './audio';
 import {
   GamePreferences,
@@ -124,6 +125,7 @@ export default function App() {
   const [botDifficulty, setBotDifficulty] = useState<BotDifficulty>(loadBotDifficulty);
   const [preferences, setPreferences] = useState<GamePreferences>(loadGamePreferences);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [friendsOpen, setFriendsOpen] = useState(false);
   const [tableAnimation, setTableAnimation] = useState<TableAnimationState>({
     phase: 'idle',
     visibleHandCounts: {},
@@ -1038,6 +1040,7 @@ export default function App() {
               </SignUpButton>
             </Show>
             <Show when="signed-in">
+              <button className="secondary-button" onClick={() => setFriendsOpen(true)}>Friends</button>
               <UserButton
                 showName
                 appearance={{
@@ -1095,6 +1098,8 @@ export default function App() {
           <button className="secondary-button" onClick={() => handleNewGame()} disabled={isAnimating}>New deal</button>
         </div>
       </header>
+
+      <FriendsPanel open={friendsOpen} onClose={() => setFriendsOpen(false)} />
 
       <div className="table-wrap">
         <div className={`table-felt ${isAnimating ? 'interaction-locked' : ''}`} aria-busy={isAnimating}>
