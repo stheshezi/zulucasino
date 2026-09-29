@@ -1,0 +1,148 @@
+<mxfile host="app.diagrams.net">
+  <diagram name="Page-1" id="xLqrrcJmO4bTR5NTtcUC">
+    <mxGraphModel dx="758" dy="414" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" parent="1" style="text;html=1;align=center;verticalAlign=middle;fontSize=20;fontStyle=1;" value="Flow 07 - 1v1 Game End &amp; Last Capture" vertex="1">
+          <mxGeometry height="40" width="590" x="120" y="20" as="geometry" />
+        </mxCell>
+        <mxCell id="round2" parent="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1;" value="Round 2 In Progress" vertex="1">
+          <mxGeometry height="60" width="220" x="300" y="90" as="geometry" />
+        </mxCell>
+        <mxCell id="capture" parent="1" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" value="Successful Capture / Take Home?" vertex="1">
+          <mxGeometry height="110" width="260" x="280" y="200" as="geometry" />
+        </mxCell>
+        <mxCell id="updateLast" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="Set lastCapturePlayer = Capturing Player" vertex="1">
+          <mxGeometry height="80" width="230" x="570" y="215" as="geometry" />
+        </mxCell>
+        <mxCell id="handsEmpty" parent="1" style="rhombus;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" value="Are Both Players&#39; Hands Empty?" vertex="1">
+          <mxGeometry height="110" width="260" x="280" y="380" as="geometry" />
+        </mxCell>
+        <mxCell id="continue" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="Continue Round 2" vertex="1">
+          <mxGeometry height="70" width="190" x="40" y="400" as="geometry" />
+        </mxCell>
+        <mxCell id="pending" parent="1" style="rhombus;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" value="Pending Move Still Active?" vertex="1">
+          <mxGeometry height="110" width="260" x="280" y="550" as="geometry" />
+        </mxCell>
+        <mxCell id="resolvePending" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" value="Game Cannot End&#xa;Complete Legal Pending Sequence" vertex="1">
+          <mxGeometry height="80" width="230" x="570" y="565" as="geometry" />
+        </mxCell>
+        <mxCell id="build" parent="1" style="rhombus;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" value="Any Unresolved Build Remaining?" vertex="1">
+          <mxGeometry height="110" width="260" x="280" y="720" as="geometry" />
+        </mxCell>
+        <mxCell id="resolveBuild" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" value="Game Cannot End&#xa;Build Must Be Resolved / Taken Home" vertex="1">
+          <mxGeometry height="80" width="230" x="570" y="735" as="geometry" />
+        </mxCell>
+        <mxCell id="validEnd" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1;" value="Valid End-of-Play State&#xa;Only Loose Floor Cards May Remain" vertex="1">
+          <mxGeometry height="90" width="280" x="270" y="890" as="geometry" />
+        </mxCell>
+        <mxCell id="floor" parent="1" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" value="Any Loose Cards Remaining on Floor?" vertex="1">
+          <mxGeometry height="110" width="260" x="280" y="1040" as="geometry" />
+        </mxCell>
+        <mxCell id="lastPlayer" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontStyle=1;" value="Identify lastCapturePlayer" vertex="1">
+          <mxGeometry height="70" width="240" x="290" y="1210" as="geometry" />
+        </mxCell>
+        <mxCell id="award" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontStyle=1;" value="Automatically Award ALL Remaining Loose Floor Cards to lastCapturePlayer" vertex="1">
+          <mxGeometry height="100" width="320" x="250" y="1340" as="geometry" />
+        </mxCell>
+        <mxCell id="inventory" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="Append Remaining Floor Cards to Player&#39;s Ordered Captured Inventory" vertex="1">
+          <mxGeometry height="90" width="320" x="250" y="1500" as="geometry" />
+        </mxCell>
+        <mxCell id="top" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;" value="Final Inventory Top Card Is Naturally Exposed&#xa;No Further Gameplay - Game Has Ended" vertex="1">
+          <mxGeometry height="90" width="300" x="260" y="1650" as="geometry" />
+        </mxCell>
+        <mxCell id="floorEmpty" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1;" value="Floor = Empty" vertex="1">
+          <mxGeometry height="60" width="200" x="310" y="1800" as="geometry" />
+        </mxCell>
+        <mxCell id="alreadyEmpty" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;" value="No Floor Cards to Award" vertex="1">
+          <mxGeometry height="70" width="190" x="40" y="1060" as="geometry" />
+        </mxCell>
+        <mxCell id="validate" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontStyle=1;" value="Validate Final 40-Card Integrity&#xa;&#xa;Deck = 0&#xa;Hands = 0&#xa;Floor = 0&#xa;Builds = 0&#xa;Pending Move = None&#xa;Captured Inventories = 40 Cards Total" vertex="1">
+          <mxGeometry height="160" width="330" x="245" y="1920" as="geometry" />
+        </mxCell>
+        <mxCell id="gameOver" parent="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1;fontSize=15;" value="GAMEPLAY COMPLETE" vertex="1">
+          <mxGeometry height="70" width="220" x="300" y="2140" as="geometry" />
+        </mxCell>
+        <mxCell id="scoring" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontStyle=1;" value="Proceed to Flow 08&#xa;Scoring &amp; Winner Calculation" vertex="1">
+          <mxGeometry height="80" width="260" x="280" y="2270" as="geometry" />
+        </mxCell>
+        <mxCell id="note" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=12;" value="LAST CAPTURE RULE&#xa;&#xa;Remaining floor cards are not captured through another normal turn. At game end they are automatically assigned to the player who made the last successful capture." vertex="1">
+          <mxGeometry height="170" width="220" x="580" y="1030" as="geometry" />
+        </mxCell>
+        <mxCell id="e1" edge="1" parent="1" source="round2" target="capture">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e2" edge="1" parent="1" source="capture" target="updateLast" value="Yes">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e3" edge="1" parent="1" source="updateLast" target="handsEmpty">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e4" edge="1" parent="1" source="capture" target="handsEmpty" value="No">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e5" edge="1" parent="1" source="handsEmpty" target="continue" value="No">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e6" edge="1" parent="1" source="continue" target="round2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e7" edge="1" parent="1" source="handsEmpty" target="pending" value="Yes">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e8" edge="1" parent="1" source="pending" target="resolvePending" value="Yes">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e9" edge="1" parent="1" source="resolvePending" target="round2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e10" edge="1" parent="1" source="pending" target="build" value="No">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e11" edge="1" parent="1" source="build" target="resolveBuild" value="Yes">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e12" edge="1" parent="1" source="resolveBuild" target="round2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e13" edge="1" parent="1" source="build" target="validEnd" value="No">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e14" edge="1" parent="1" source="validEnd" target="floor">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e15" edge="1" parent="1" source="floor" target="lastPlayer" value="Yes">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e16" edge="1" parent="1" source="lastPlayer" target="award">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e17" edge="1" parent="1" source="award" target="inventory">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e18" edge="1" parent="1" source="inventory" target="top">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e19" edge="1" parent="1" source="top" target="floorEmpty">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e20" edge="1" parent="1" source="floorEmpty" target="validate">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e21" edge="1" parent="1" source="floor" target="alreadyEmpty" value="No">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e22" edge="1" parent="1" source="alreadyEmpty" target="validate">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e23" edge="1" parent="1" source="validate" target="gameOver">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e24" edge="1" parent="1" source="gameOver" target="scoring">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

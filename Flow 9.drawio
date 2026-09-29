@@ -1,0 +1,283 @@
+<mxfile host="app.diagrams.net">
+  <diagram name="Page-1" id="oPkG5WLg22nyI7COcmTq">
+    <mxGraphModel dx="758" dy="414" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" parent="1" style="text;html=1;align=center;verticalAlign=middle;fontSize=20;fontStyle=1;" value="Flow 09 - Online 1v1 Match Lifecycle &amp; Authoritative State" vertex="1">
+          <mxGeometry height="40" width="650" x="100" y="20" as="geometry" />
+        </mxCell>
+        <mxCell id="start" parent="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1;" value="Authenticated Player" vertex="1">
+          <mxGeometry height="60" width="220" x="310" y="90" as="geometry" />
+        </mxCell>
+        <mxCell id="online" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="Select Online 1v1" vertex="1">
+          <mxGeometry height="60" width="200" x="320" y="190" as="geometry" />
+        </mxCell>
+        <mxCell id="matchType" parent="1" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" value="Select Match Type" vertex="1">
+          <mxGeometry height="100" width="220" x="310" y="300" as="geometry" />
+        </mxCell>
+        <mxCell id="casual" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;" value="CASUAL&#xa;Rating Not Affected" vertex="1">
+          <mxGeometry height="70" width="200" x="70" y="440" as="geometry" />
+        </mxCell>
+        <mxCell id="rated" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontStyle=1;" value="RATED&#xa;Result Affects Player Rating" vertex="1">
+          <mxGeometry height="70" width="210" x="570" y="440" as="geometry" />
+        </mxCell>
+        <mxCell id="opponent" parent="1" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" value="Choose Opponent Method" vertex="1">
+          <mxGeometry height="100" width="220" x="310" y="560" as="geometry" />
+        </mxCell>
+        <mxCell id="quick" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="QUICK MATCH&#xa;Enter Matchmaking Queue" vertex="1">
+          <mxGeometry height="80" width="220" x="50" y="710" as="geometry" />
+        </mxCell>
+        <mxCell id="friends" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="FRIENDS LIST&#xa;Find / Select Friend by Username" vertex="1">
+          <mxGeometry height="80" width="220" x="570" y="710" as="geometry" />
+        </mxCell>
+        <mxCell id="challenge" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" value="Send 1v1 Challenge" vertex="1">
+          <mxGeometry height="60" width="200" x="580" y="840" as="geometry" />
+        </mxCell>
+        <mxCell id="accept" parent="1" style="rhombus;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" value="Friend Accepts?" vertex="1">
+          <mxGeometry height="90" width="180" x="590" y="950" as="geometry" />
+        </mxCell>
+        <mxCell id="declined" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;" value="Declined / Cancelled&#xa;Return to Friends" vertex="1">
+          <mxGeometry height="70" width="190" x="590" y="1090" as="geometry" />
+        </mxCell>
+        <mxCell id="matchFound" parent="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1;" value="Two Players Ready" vertex="1">
+          <mxGeometry height="60" width="220" x="310" y="1090" as="geometry" />
+        </mxCell>
+        <mxCell id="create" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontStyle=1;" value="SERVER Creates Authoritative Match" vertex="1">
+          <mxGeometry height="70" width="280" x="280" y="1210" as="geometry" />
+        </mxCell>
+        <mxCell id="session" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="Create Match Session&#xa;Session Score = 0 - 0" vertex="1">
+          <mxGeometry height="70" width="240" x="300" y="1330" as="geometry" />
+        </mxCell>
+        <mxCell id="deck" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontStyle=1;" value="SERVER Creates 40-Card Deck&#xa;Shuffle + Cut + Deal Validation" vertex="1">
+          <mxGeometry height="90" width="280" x="280" y="1450" as="geometry" />
+        </mxCell>
+        <mxCell id="starter" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="Server Selects Starting Player" vertex="1">
+          <mxGeometry height="70" width="240" x="300" y="1590" as="geometry" />
+        </mxCell>
+        <mxCell id="views" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontStyle=1;" value="Generate Private PlayerViewState" vertex="1">
+          <mxGeometry height="70" width="260" x="290" y="1710" as="geometry" />
+        </mxCell>
+        <mxCell id="viewA" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" value="PLAYER A RECEIVES&#xa;&#xa;Own card identities&#xa;Opponent hand count only&#xa;Public floor / builds&#xa;Captured piles + exposed tops&#xa;Public match state" vertex="1">
+          <mxGeometry height="160" width="260" x="40" y="1830" as="geometry" />
+        </mxCell>
+        <mxCell id="viewB" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" value="PLAYER B RECEIVES&#xa;&#xa;Own card identities&#xa;Opponent hand count only&#xa;Public floor / builds&#xa;Captured piles + exposed tops&#xa;Public match state" vertex="1">
+          <mxGeometry height="160" width="260" x="540" y="1830" as="geometry" />
+        </mxCell>
+        <mxCell id="security" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontStyle=1;" value="SECURITY BOUNDARY&#xa;&#xa;Opponent hidden cards and undealt deck identities are NEVER sent to the client." vertex="1">
+          <mxGeometry height="140" width="210" x="315" y="1840" as="geometry" />
+        </mxCell>
+        <mxCell id="gameStart" parent="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1;" value="1v1 Game Begins&#xa;Flows 01 - 08 Govern Gameplay" vertex="1">
+          <mxGeometry height="70" width="260" x="290" y="2050" as="geometry" />
+        </mxCell>
+        <mxCell id="action" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="Player Submits Intended Action" vertex="1">
+          <mxGeometry height="70" width="240" x="300" y="2170" as="geometry" />
+        </mxCell>
+        <mxCell id="validateAction" parent="1" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontStyle=1;" value="SERVER Validates Action Against Authoritative State" vertex="1">
+          <mxGeometry height="120" width="270" x="285" y="2290" as="geometry" />
+        </mxCell>
+        <mxCell id="reject" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" value="Reject Illegal Action&#xa;Authoritative State Unchanged" vertex="1">
+          <mxGeometry height="80" width="220" x="40" y="2310" as="geometry" />
+        </mxCell>
+        <mxCell id="apply" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" value="Apply Legal Action to Server State" vertex="1">
+          <mxGeometry height="80" width="210" x="590" y="2310" as="geometry" />
+        </mxCell>
+        <mxCell id="integrity" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontStyle=1;" value="Validate 40-Card Integrity" vertex="1">
+          <mxGeometry height="60" width="210" x="590" y="2440" as="geometry" />
+        </mxCell>
+        <mxCell id="broadcast" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" value="Generate New Filtered PlayerViewState&#xa;Send Only Permitted Updates to Each Client" vertex="1">
+          <mxGeometry height="90" width="260" x="565" y="2550" as="geometry" />
+        </mxCell>
+        <mxCell id="gameOver" parent="1" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" value="Game Complete?" vertex="1">
+          <mxGeometry height="100" width="240" x="300" y="2690" as="geometry" />
+        </mxCell>
+        <mxCell id="score" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontStyle=1;" value="Calculate Confirmed 11-Point Result&#xa;Flow 08" vertex="1">
+          <mxGeometry height="80" width="270" x="285" y="2840" as="geometry" />
+        </mxCell>
+        <mxCell id="ratedCheck" parent="1" style="rhombus;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" value="Rated Match?" vertex="1">
+          <mxGeometry height="100" width="220" x="310" y="2970" as="geometry" />
+        </mxCell>
+        <mxCell id="rating" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontStyle=1;" value="Update Player Ratings&#xa;Using Win / Loss Result" vertex="1">
+          <mxGeometry height="80" width="220" x="570" y="2980" as="geometry" />
+        </mxCell>
+        <mxCell id="sessionScore" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;" value="Update Session Score&#xa;&#xa;Example: Winner now leads 1 - 0" vertex="1">
+          <mxGeometry height="90" width="280" x="280" y="3130" as="geometry" />
+        </mxCell>
+        <mxCell id="results" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1;" value="POST-GAME RESULTS&#xa;&#xa;11-point game result&#xa;Session score&#xa;Rating change if Rated&#xa;Preset messages only" vertex="1">
+          <mxGeometry height="140" width="300" x="270" y="3270" as="geometry" />
+        </mxCell>
+        <mxCell id="messages" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;" value="Preset Messages&#xa;&#xa;Good Game&#xa;Well Played&#xa;Nice One&#xa;Close Game&#xa;Rematch?" vertex="1">
+          <mxGeometry height="150" width="200" x="590" y="3260" as="geometry" />
+        </mxCell>
+        <mxCell id="next" parent="1" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontStyle=1;" value="Player Choice" vertex="1">
+          <mxGeometry height="100" width="220" x="310" y="3470" as="geometry" />
+        </mxCell>
+        <mxCell id="rematch" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;" value="REMATCH REQUEST" vertex="1">
+          <mxGeometry height="70" width="200" x="40" y="3620" as="geometry" />
+        </mxCell>
+        <mxCell id="rematchAccept" parent="1" style="rhombus;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" value="Opponent Accepts?" vertex="1">
+          <mxGeometry height="90" width="180" x="50" y="3740" as="geometry" />
+        </mxCell>
+        <mxCell id="newGame" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" value="Create New Game Inside Same Session&#xa;&#xa;Game Score Reset to 0 - 0&#xa;Session Score Preserved&#xa;Rebuild / Reshuffle / Cut 40-Card Deck" vertex="1">
+          <mxGeometry height="130" width="270" x="40" y="3890" as="geometry" />
+        </mxCell>
+        <mxCell id="leave" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontStyle=1;" value="NEW GAME / LEAVE SESSION" vertex="1">
+          <mxGeometry height="70" width="220" x="570" y="3620" as="geometry" />
+        </mxCell>
+        <mxCell id="close" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" value="Close Head-to-Head Session&#xa;Session Score Ends" vertex="1">
+          <mxGeometry height="80" width="220" x="570" y="3750" as="geometry" />
+        </mxCell>
+        <mxCell id="history" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" value="Store Completed Game Result in Match History" vertex="1">
+          <mxGeometry height="80" width="260" x="550" y="3890" as="geometry" />
+        </mxCell>
+        <mxCell id="end" parent="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1;" value="Return to Online Lobby / Friends" vertex="1">
+          <mxGeometry height="70" width="220" x="570" y="4030" as="geometry" />
+        </mxCell>
+        <mxCell id="architecture" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=12;fontStyle=1;" value="AUTHORITATIVE STATE RULE&#xa;&#xa;Server owns:&#xa;Deck + hidden hands + turns + builds + pending moves + captures + round progression + scoring.&#xa;&#xa;Clients submit intentions. Clients do not decide legality." vertex="1">
+          <mxGeometry height="210" width="220" x="40" y="2550" as="geometry" />
+        </mxCell>
+        <mxCell id="e1" edge="1" parent="1" source="start" target="online">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e2" edge="1" parent="1" source="online" target="matchType">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e3" edge="1" parent="1" source="matchType" target="casual" value="Casual">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e4" edge="1" parent="1" source="matchType" target="rated" value="Rated">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e5" edge="1" parent="1" source="casual" target="opponent">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e6" edge="1" parent="1" source="rated" target="opponent">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e7" edge="1" parent="1" source="opponent" target="quick" value="Quick Match">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e8" edge="1" parent="1" source="opponent" target="friends" value="Friend">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e9" edge="1" parent="1" source="friends" target="challenge">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e10" edge="1" parent="1" source="challenge" target="accept">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e11" edge="1" parent="1" source="accept" target="declined" value="No">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e12" edge="1" parent="1" source="declined" target="friends">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e13" edge="1" parent="1" source="accept" target="matchFound" value="Yes">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e14" edge="1" parent="1" source="quick" target="matchFound" value="Opponent Found">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e15" edge="1" parent="1" source="matchFound" target="create">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e16" edge="1" parent="1" source="create" target="session">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e17" edge="1" parent="1" source="session" target="deck">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e18" edge="1" parent="1" source="deck" target="starter">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e19" edge="1" parent="1" source="starter" target="views">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e20" edge="1" parent="1" source="views" target="viewA">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e21" edge="1" parent="1" source="views" target="viewB">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e22" edge="1" parent="1" source="views" target="gameStart">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e23" edge="1" parent="1" source="gameStart" target="action">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e24" edge="1" parent="1" source="action" target="validateAction">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e25" edge="1" parent="1" source="validateAction" target="reject" value="Illegal">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e26" edge="1" parent="1" source="reject" target="action">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e27" edge="1" parent="1" source="validateAction" target="apply" value="Legal">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e28" edge="1" parent="1" source="apply" target="integrity">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e29" edge="1" parent="1" source="integrity" target="broadcast">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e30" edge="1" parent="1" source="broadcast" target="gameOver">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e31" edge="1" parent="1" source="gameOver" target="action" value="No">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e32" edge="1" parent="1" source="gameOver" target="score" value="Yes">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e33" edge="1" parent="1" source="score" target="ratedCheck">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e34" edge="1" parent="1" source="ratedCheck" target="rating" value="Yes">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e35" edge="1" parent="1" source="rating" target="sessionScore">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e36" edge="1" parent="1" source="ratedCheck" target="sessionScore" value="No">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e37" edge="1" parent="1" source="sessionScore" target="results">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e38" edge="1" parent="1" source="results" target="next">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e39" edge="1" parent="1" source="next" target="rematch" value="Rematch">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e40" edge="1" parent="1" source="rematch" target="rematchAccept">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e41" edge="1" parent="1" source="rematchAccept" target="newGame" value="Yes">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e42" edge="1" parent="1" source="newGame" target="deck">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e43" edge="1" parent="1" source="rematchAccept" target="close" value="No">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e44" edge="1" parent="1" source="next" target="leave" value="New Game / Leave">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e45" edge="1" parent="1" source="leave" target="close">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e46" edge="1" parent="1" source="close" target="history">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e47" edge="1" parent="1" source="history" target="end">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

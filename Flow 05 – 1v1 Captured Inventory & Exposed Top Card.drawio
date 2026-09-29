@@ -1,0 +1,136 @@
+<mxfile host="app.diagrams.net">
+  <diagram name="Page-1" id="8m1_gcVXKt1tQIcEtKFB">
+    <mxGraphModel dx="758" dy="414" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" parent="1" style="text;html=1;align=center;verticalAlign=middle;fontSize=20;fontStyle=1;" value="Flow 05 - 1v1 Captured Inventory &amp; Exposed Top Card" vertex="1">
+          <mxGeometry height="40" width="590" x="120" y="20" as="geometry" />
+        </mxCell>
+        <mxCell id="start" parent="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1;" value="Player Makes Successful Capture" vertex="1">
+          <mxGeometry height="60" width="240" x="290" y="90" as="geometry" />
+        </mxCell>
+        <mxCell id="addInventory" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="Captured Cards Added to Inventory in Physical Order" vertex="1">
+          <mxGeometry height="80" width="300" x="260" y="190" as="geometry" />
+        </mxCell>
+        <mxCell id="topCard" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontStyle=1;" value="Last Card in Inventory Becomes Exposed Top Card" vertex="1">
+          <mxGeometry height="80" width="300" x="260" y="320" as="geometry" />
+        </mxCell>
+        <mxCell id="oppTurn" parent="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" value="Opponent Turn Begins" vertex="1">
+          <mxGeometry height="60" width="180" x="320" y="450" as="geometry" />
+        </mxCell>
+        <mxCell id="canUseTop" parent="1" style="rhombus;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" value="Can Opponent Legally Use Exposed Top Card?" vertex="1">
+          <mxGeometry height="110" width="260" x="280" y="560" as="geometry" />
+        </mxCell>
+        <mxCell id="ignoreTop" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;" value="Leave Exposed Top Card Untouched" vertex="1">
+          <mxGeometry height="70" width="230" x="40" y="730" as="geometry" />
+        </mxCell>
+        <mxCell id="useTop" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" value="Use Exposed Top Card in Legal Action" vertex="1">
+          <mxGeometry height="70" width="250" x="330" y="730" as="geometry" />
+        </mxCell>
+        <mxCell id="handParticipation" parent="1" style="rhombus;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" value="Does At Least One Card From Active Player&#39;s Hand Participate?" vertex="1">
+          <mxGeometry height="120" width="250" x="330" y="850" as="geometry" />
+        </mxCell>
+        <mxCell id="illegal" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" value="Illegal Action&#xa;Cannot Move Inventory Card Alone" vertex="1">
+          <mxGeometry height="80" width="240" x="40" y="1020" as="geometry" />
+        </mxCell>
+        <mxCell id="legalUse" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1;" value="Legal Use of Exposed Top Card" vertex="1">
+          <mxGeometry height="70" width="230" x="340" y="1020" as="geometry" />
+        </mxCell>
+        <mxCell id="removeTop" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" value="Remove Exposed Top Card From Opponent Inventory" vertex="1">
+          <mxGeometry height="80" width="270" x="320" y="1140" as="geometry" />
+        </mxCell>
+        <mxCell id="revealNext" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" value="Reveal Next Card Underneath as New Exposed Top" vertex="1">
+          <mxGeometry height="80" width="270" x="320" y="1270" as="geometry" />
+        </mxCell>
+        <mxCell id="playedCardStillLive" parent="1" style="rhombus;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" value="Does Played Hand Card Still Have Legal Game?" vertex="1">
+          <mxGeometry height="110" width="270" x="320" y="1400" as="geometry" />
+        </mxCell>
+        <mxCell id="continueTurn" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;" value="Continue Same Turn&#xa;Played Hand Card Remains Active" vertex="1">
+          <mxGeometry height="80" width="230" x="590" y="1420" as="geometry" />
+        </mxCell>
+        <mxCell id="checkNewTop" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" value="Check Newly Exposed Top + Floor + Existing Build for Additional Legal Play" vertex="1">
+          <mxGeometry height="100" width="250" x="580" y="1550" as="geometry" />
+        </mxCell>
+        <mxCell id="turnComplete" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;" value="No Further Legal Game With Played Card" vertex="1">
+          <mxGeometry height="80" width="270" x="250" y="1570" as="geometry" />
+        </mxCell>
+        <mxCell id="updateState" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" value="Update Inventory / Floor / Build / Exposed Top / Last Capture" vertex="1">
+          <mxGeometry height="90" width="290" x="260" y="1710" as="geometry" />
+        </mxCell>
+        <mxCell id="integrity" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontStyle=1;" value="Validate 40-Card Integrity" vertex="1">
+          <mxGeometry height="70" width="210" x="300" y="1850" as="geometry" />
+        </mxCell>
+        <mxCell id="end" parent="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1;" value="End Turn&#xa;Pass to Opponent" vertex="1">
+          <mxGeometry height="70" width="190" x="310" y="1970" as="geometry" />
+        </mxCell>
+        <mxCell id="example" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=12;" value="Example:&#xa;Own 6-build + Player A + Opponent exposed 5 = 6.&#xa;If removal reveals another usable top card or the played A still has legal game on floor, same turn can continue." vertex="1">
+          <mxGeometry height="150" width="240" x="40" y="1290" as="geometry" />
+        </mxCell>
+        <mxCell id="rule" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontStyle=1;" value="Core Rule:&#xa;Captured inventory is an ordered stack.&#xa;Only the top card is exposed and interactable." vertex="1">
+          <mxGeometry height="110" width="240" x="580" y="1130" as="geometry" />
+        </mxCell>
+        <mxCell id="e1" edge="1" parent="1" source="start" target="addInventory">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e2" edge="1" parent="1" source="addInventory" target="topCard">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e3" edge="1" parent="1" source="topCard" target="oppTurn">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e4" edge="1" parent="1" source="oppTurn" target="canUseTop">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e5" edge="1" parent="1" source="canUseTop" target="ignoreTop" value="No">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e6" edge="1" parent="1" source="canUseTop" target="useTop" value="Yes">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e7" edge="1" parent="1" source="useTop" target="handParticipation">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e8" edge="1" parent="1" source="handParticipation" target="illegal" value="No">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e9" edge="1" parent="1" source="handParticipation" target="legalUse" value="Yes">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e10" edge="1" parent="1" source="legalUse" target="removeTop">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e11" edge="1" parent="1" source="removeTop" target="revealNext">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e12" edge="1" parent="1" source="revealNext" target="playedCardStillLive">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e13" edge="1" parent="1" source="playedCardStillLive" target="continueTurn" value="Yes">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e14" edge="1" parent="1" source="continueTurn" target="checkNewTop">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e15" edge="1" parent="1" source="checkNewTop" target="canUseTop">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e16" edge="1" parent="1" source="playedCardStillLive" target="turnComplete" value="No">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e17" edge="1" parent="1" source="turnComplete" target="updateState">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e18" edge="1" parent="1" source="ignoreTop" target="updateState">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e19" edge="1" parent="1" source="updateState" target="integrity">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e20" edge="1" parent="1" source="integrity" target="end">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

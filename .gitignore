@@ -1,0 +1,19 @@
+node_modules/
+dist/
+
+.env
+.env.*
+!.env.example
+
+*.log
+*.tsbuildinfo
+vite.config.js
+vite.config.d.ts
+
+.DS_Store
+Thumbs.db
+.vercel/
+
+Flow 05 * Captured Inventory & Exposed Top Card.html
+Flow 05 * Captured Inventory & Exposed Top Card_files/
+

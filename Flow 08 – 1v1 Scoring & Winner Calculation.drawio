@@ -1,0 +1,127 @@
+<mxfile host="app.diagrams.net">
+  <diagram name="Page-1" id="YBQDw-Yyl_juMZtid0pB">
+    <mxGraphModel dx="758" dy="414" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" parent="1" style="text;html=1;align=center;verticalAlign=middle;fontSize=20;fontStyle=1;" value="Flow 08 - 1v1 Scoring &amp; Winner Calculation" vertex="1">
+          <mxGeometry height="40" width="620" x="100" y="20" as="geometry" />
+        </mxCell>
+        <mxCell id="start" parent="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1;" value="Flow 07 Complete&#xa;Gameplay Has Ended" vertex="1">
+          <mxGeometry height="70" width="220" x="300" y="90" as="geometry" />
+        </mxCell>
+        <mxCell id="validate" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontStyle=1;" value="Validate Final Game State&#xa;All 40 Cards Must Be in Captured Inventories" vertex="1">
+          <mxGeometry height="90" width="300" x="260" y="210" as="geometry" />
+        </mxCell>
+        <mxCell id="init" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="Set Player A Score = 0&#xa;Set Player B Score = 0" vertex="1">
+          <mxGeometry height="80" width="240" x="290" y="350" as="geometry" />
+        </mxCell>
+        <mxCell id="aces" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontStyle=1;" value="Score the 4 Aces&#xa;&#xa;Each Ace = 1 Point&#xa;4 Points Total" vertex="1">
+          <mxGeometry height="100" width="280" x="270" y="480" as="geometry" />
+        </mxCell>
+        <mxCell id="tenDiamond" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontStyle=1;" value="Who Captured 10♦?&#xa;&#xa;Award 2 Points" vertex="1">
+          <mxGeometry height="90" width="280" x="270" y="630" as="geometry" />
+        </mxCell>
+        <mxCell id="twoSpade" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontStyle=1;" value="Who Captured 2♠?&#xa;&#xa;Award 1 Point" vertex="1">
+          <mxGeometry height="90" width="280" x="270" y="770" as="geometry" />
+        </mxCell>
+        <mxCell id="countSpades" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontStyle=1;" value="Count Spades in Each Captured Inventory&#xa;10 Spades Total" vertex="1">
+          <mxGeometry height="90" width="300" x="260" y="910" as="geometry" />
+        </mxCell>
+        <mxCell id="spadeTie" parent="1" style="rhombus;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" value="Spades Split 5 - 5?" vertex="1">
+          <mxGeometry height="100" width="240" x="290" y="1050" as="geometry" />
+        </mxCell>
+        <mxCell id="splitSpades" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="Award 1 Point to Each Player" vertex="1">
+          <mxGeometry height="70" width="220" x="40" y="1190" as="geometry" />
+        </mxCell>
+        <mxCell id="majoritySpades" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1;" value="Player With 6+ Spades&#xa;Receives 2 Points" vertex="1">
+          <mxGeometry height="70" width="220" x="560" y="1190" as="geometry" />
+        </mxCell>
+        <mxCell id="countCards" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontStyle=1;" value="Count Total Captured Cards&#xa;40 Cards Total" vertex="1">
+          <mxGeometry height="90" width="300" x="260" y="1330" as="geometry" />
+        </mxCell>
+        <mxCell id="cardTie" parent="1" style="rhombus;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" value="Captured Cards Split 20 - 20?" vertex="1">
+          <mxGeometry height="100" width="240" x="290" y="1470" as="geometry" />
+        </mxCell>
+        <mxCell id="splitCards" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="Award 1 Point to Each Player" vertex="1">
+          <mxGeometry height="70" width="220" x="40" y="1610" as="geometry" />
+        </mxCell>
+        <mxCell id="majorityCards" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1;" value="Player With 21+ Cards&#xa;Receives 2 Points" vertex="1">
+          <mxGeometry height="70" width="220" x="560" y="1610" as="geometry" />
+        </mxCell>
+        <mxCell id="total" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontStyle=1;" value="Calculate Final Scores&#xa;&#xa;Combined Points Must Equal 11" vertex="1">
+          <mxGeometry height="90" width="280" x="270" y="1760" as="geometry" />
+        </mxCell>
+        <mxCell id="winner" parent="1" style="rhombus;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontStyle=1;" value="Compare Final Scores" vertex="1">
+          <mxGeometry height="100" width="220" x="300" y="1900" as="geometry" />
+        </mxCell>
+        <mxCell id="playerA" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1;" value="Player A Has More Points&#xa;Player A Wins" vertex="1">
+          <mxGeometry height="80" width="220" x="40" y="2050" as="geometry" />
+        </mxCell>
+        <mxCell id="playerB" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1;" value="Player B Has More Points&#xa;Player B Wins" vertex="1">
+          <mxGeometry height="80" width="220" x="560" y="2050" as="geometry" />
+        </mxCell>
+        <mxCell id="summary" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontStyle=1;" value="11-POINT SCORING SYSTEM&#xa;&#xa;4 Aces = 4&#xa;10♦ = 2&#xa;2♠ = 1&#xa;Spades = 2&#xa;Captured Cards = 2&#xa;&#xa;TOTAL = 11" vertex="1">
+          <mxGeometry height="200" width="200" x="580" y="470" as="geometry" />
+        </mxCell>
+        <mxCell id="e1" edge="1" parent="1" source="start" target="validate">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e2" edge="1" parent="1" source="validate" target="init">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e3" edge="1" parent="1" source="init" target="aces">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e4" edge="1" parent="1" source="aces" target="tenDiamond">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e5" edge="1" parent="1" source="tenDiamond" target="twoSpade">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e6" edge="1" parent="1" source="twoSpade" target="countSpades">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e7" edge="1" parent="1" source="countSpades" target="spadeTie">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e8" edge="1" parent="1" source="spadeTie" target="splitSpades" value="Yes">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e9" edge="1" parent="1" source="spadeTie" target="majoritySpades" value="No">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e10" edge="1" parent="1" source="splitSpades" target="countCards">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e11" edge="1" parent="1" source="majoritySpades" target="countCards">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e12" edge="1" parent="1" source="countCards" target="cardTie">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e13" edge="1" parent="1" source="cardTie" target="splitCards" value="Yes">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e14" edge="1" parent="1" source="cardTie" target="majorityCards" value="No">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e15" edge="1" parent="1" source="splitCards" target="total">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e16" edge="1" parent="1" source="majorityCards" target="total">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e17" edge="1" parent="1" source="total" target="winner">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e18" edge="1" parent="1" source="winner" target="playerA" value="A &gt; B">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e19" edge="1" parent="1" source="winner" target="playerB" value="B &gt; A">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

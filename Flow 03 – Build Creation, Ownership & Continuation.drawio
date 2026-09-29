@@ -1,0 +1,199 @@
+<mxfile host="app.diagrams.net">
+  <diagram name="Page-1" id="v1-ruKqPGsR4yJRD5Uww">
+    <mxGraphModel dx="758" dy="414" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" parent="1" style="text;html=1;align=center;verticalAlign=middle;fontSize=20;fontStyle=1;" value="Flow 03 - 1v1 Build Creation, Ownership &amp; Continuation" vertex="1">
+          <mxGeometry height="40" width="590" x="120" y="20" as="geometry" />
+        </mxCell>
+        <mxCell id="start" parent="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1;" value="Player Chooses Build Action" vertex="1">
+          <mxGeometry height="60" width="220" x="300" y="80" as="geometry" />
+        </mxCell>
+        <mxCell id="buildType" parent="1" style="rhombus;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" value="Build Type?" vertex="1">
+          <mxGeometry height="100" width="190" x="315" y="180" as="geometry" />
+        </mxCell>
+        <mxCell id="normalBuild" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;" value="Normal Build" vertex="1">
+          <mxGeometry height="60" width="180" x="40" y="340" as="geometry" />
+        </mxCell>
+        <mxCell id="stayBuild" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontStyle=1;" value="Stay Build" vertex="1">
+          <mxGeometry height="60" width="180" x="325" y="340" as="geometry" />
+        </mxCell>
+        <mxCell id="continueBuild" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontStyle=1;" value="Continue Existing Build" vertex="1">
+          <mxGeometry height="60" width="190" x="610" y="340" as="geometry" />
+        </mxCell>
+        <mxCell id="normalTarget" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;" value="Choose Target Value X" vertex="1">
+          <mxGeometry height="60" width="200" x="30" y="450" as="geometry" />
+        </mxCell>
+        <mxCell id="normalHold" parent="1" style="rhombus;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" value="Will Player Still Hold Matching X After Playing Build Card?" vertex="1">
+          <mxGeometry height="120" width="220" x="20" y="550" as="geometry" />
+        </mxCell>
+        <mxCell id="normalMath" parent="1" style="rhombus;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" value="Does Played Card + Available Card(s) = X?" vertex="1">
+          <mxGeometry height="110" width="220" x="20" y="720" as="geometry" />
+        </mxCell>
+        <mxCell id="normalCreate" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" value="Create Unsecured Build&#xa;Target = X&#xa;Owner = Player" vertex="1">
+          <mxGeometry height="90" width="220" x="20" y="880" as="geometry" />
+        </mxCell>
+        <mxCell id="isTen" parent="1" style="rhombus;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" value="Is X = 10?" vertex="1">
+          <mxGeometry height="90" width="180" x="40" y="1020" as="geometry" />
+        </mxCell>
+        <mxCell id="tenFinal" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" value="10 Build Cannot Be Manipulated Upward&#xa;10 Is Maximum Build Value" vertex="1">
+          <mxGeometry height="90" width="230" x="20" y="1160" as="geometry" />
+        </mxCell>
+        <mxCell id="normalUnsecured" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" value="Build Remains Unsecured&#xa;Opponent May Manipulate Upward If Legal" vertex="1">
+          <mxGeometry height="90" width="250" x="280" y="1160" as="geometry" />
+        </mxCell>
+        <mxCell id="secureAction" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;" value="Owner Later Plays Matching X Onto Build" vertex="1">
+          <mxGeometry height="70" width="250" x="280" y="1290" as="geometry" />
+        </mxCell>
+        <mxCell id="secured" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" value="Build Secured&#xa;Opponent Cannot Manipulate&#xa;Opponent May Only Capture / Eat Legally" vertex="1">
+          <mxGeometry height="100" width="260" x="280" y="1410" as="geometry" />
+        </mxCell>
+        <mxCell id="stayFloor" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;" value="Matching Value X Exists Loose on Floor" vertex="1">
+          <mxGeometry height="60" width="230" x="300" y="450" as="geometry" />
+        </mxCell>
+        <mxCell id="stayCheck" parent="1" style="rhombus;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" value="Player Has At Least Two Matching X Cards Before Move?" vertex="1">
+          <mxGeometry height="120" width="220" x="305" y="550" as="geometry" />
+        </mxCell>
+        <mxCell id="stayPlay" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" value="Play X Onto Floor X&#xa;Declare STAY" vertex="1">
+          <mxGeometry height="80" width="200" x="315" y="720" as="geometry" />
+        </mxCell>
+        <mxCell id="staySecure" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" value="Create Secured Build X Immediately&#xa;Player Retains Another X in Hand" vertex="1">
+          <mxGeometry height="90" width="240" x="295" y="850" as="geometry" />
+        </mxCell>
+        <mxCell id="continueOwn" parent="1" style="rhombus;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" value="Does Player Own Active Build X?" vertex="1">
+          <mxGeometry height="100" width="210" x="600" y="450" as="geometry" />
+        </mxCell>
+        <mxCell id="participation" parent="1" style="rhombus;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" value="Does At Least One Card From Player Hand Participate?" vertex="1">
+          <mxGeometry height="110" width="230" x="590" y="600" as="geometry" />
+        </mxCell>
+        <mxCell id="sourceCheck" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;" value="Use Additional Card From:&#xa;- Loose Floor&#xa;- Opponent Exposed Inventory Top&#xa;- Player Hand" vertex="1">
+          <mxGeometry height="110" width="250" x="580" y="760" as="geometry" />
+        </mxCell>
+        <mxCell id="continueMath" parent="1" style="rhombus;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" value="Does New Combination = Existing Build Value X?" vertex="1">
+          <mxGeometry height="110" width="230" x="590" y="920" as="geometry" />
+        </mxCell>
+        <mxCell id="append" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" value="Append Cards to Existing Build&#xa;Preserve Physical Play Order&#xa;Ownership Remains with Player" vertex="1">
+          <mxGeometry height="100" width="250" x="580" y="1080" as="geometry" />
+        </mxCell>
+        <mxCell id="invalid" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontStyle=1;" value="Invalid Build Action&#xa;Return to Action Selection" vertex="1">
+          <mxGeometry height="80" width="250" x="30" y="1570" as="geometry" />
+        </mxCell>
+        <mxCell id="apply" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;" value="Apply Build State Update" vertex="1">
+          <mxGeometry height="70" width="220" x="380" y="1570" as="geometry" />
+        </mxCell>
+        <mxCell id="turnEnd" parent="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1;" value="Turn Ends&#xa;Pass Play to Opponent" vertex="1">
+          <mxGeometry height="70" width="200" x="390" y="1690" as="geometry" />
+        </mxCell>
+        <mxCell id="ruleNote1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=12;" value="Normal build example:&#xa;Floor 5 + Player A = Build 6&#xa;Player must still hold a 6." vertex="1">
+          <mxGeometry height="100" width="220" x="30" y="1300" as="geometry" />
+        </mxCell>
+        <mxCell id="ruleNote2" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=12;" value="Manipulation example:&#xa;Unsecured Build 6 + Opponent A = Build 7&#xa;Opponent must hold 7." vertex="1">
+          <mxGeometry height="110" width="260" x="560" y="1260" as="geometry" />
+        </mxCell>
+        <mxCell id="ruleNote3" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=12;" value="Continuation example:&#xa;Owned Build 6 + Player A + Opponent Exposed 5 = Continue Build 6." vertex="1">
+          <mxGeometry height="110" width="260" x="560" y="1410" as="geometry" />
+        </mxCell>
+        <mxCell id="e1" edge="1" parent="1" source="start" target="buildType">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e2" edge="1" parent="1" source="buildType" target="normalBuild" value="Normal">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e3" edge="1" parent="1" source="buildType" target="stayBuild" value="Stay">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e4" edge="1" parent="1" source="buildType" target="continueBuild" value="Continue">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e5" edge="1" parent="1" source="normalBuild" target="normalTarget">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e6" edge="1" parent="1" source="normalTarget" target="normalHold">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e7" edge="1" parent="1" source="normalHold" target="normalMath" value="Yes">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e8" edge="1" parent="1" source="normalHold" target="invalid" value="No">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e9" edge="1" parent="1" source="normalMath" target="normalCreate" value="Yes">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e10" edge="1" parent="1" source="normalMath" target="invalid" value="No">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e11" edge="1" parent="1" source="normalCreate" target="isTen">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e12" edge="1" parent="1" source="isTen" target="tenFinal" value="Yes">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e13" edge="1" parent="1" source="isTen" target="normalUnsecured" value="No">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e14" edge="1" parent="1" source="normalUnsecured" target="secureAction">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e15" edge="1" parent="1" source="secureAction" target="secured">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e16" edge="1" parent="1" source="tenFinal" target="apply">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e17" edge="1" parent="1" source="secured" target="apply">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e18" edge="1" parent="1" source="stayBuild" target="stayFloor">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e19" edge="1" parent="1" source="stayFloor" target="stayCheck">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e20" edge="1" parent="1" source="stayCheck" target="stayPlay" value="Yes">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e21" edge="1" parent="1" source="stayCheck" target="invalid" value="No">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e22" edge="1" parent="1" source="stayPlay" target="staySecure">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e23" edge="1" parent="1" source="staySecure" target="apply">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e24" edge="1" parent="1" source="continueBuild" target="continueOwn">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e25" edge="1" parent="1" source="continueOwn" target="participation" value="Yes">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e26" edge="1" parent="1" source="continueOwn" target="invalid" value="No">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e27" edge="1" parent="1" source="participation" target="sourceCheck" value="Yes">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e28" edge="1" parent="1" source="participation" target="invalid" value="No">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e29" edge="1" parent="1" source="sourceCheck" target="continueMath">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e30" edge="1" parent="1" source="continueMath" target="append" value="Yes">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e31" edge="1" parent="1" source="continueMath" target="invalid" value="No">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e32" edge="1" parent="1" source="append" target="apply">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e33" edge="1" parent="1" source="apply" target="turnEnd">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

@@ -1,0 +1,157 @@
+<mxfile host="app.diagrams.net">
+  <diagram name="Page-1" id="Ro39h38_Hyxjg04W8GVP">
+    <mxGraphModel dx="758" dy="414" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" parent="1" style="text;html=1;align=center;verticalAlign=middle;fontSize=20;fontStyle=1;" value="Flow 04 - 1v1 Capture / Eat Logic" vertex="1">
+          <mxGeometry height="40" width="500" x="170" y="20" as="geometry" />
+        </mxCell>
+        <mxCell id="start" parent="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1;" value="Player Selects Card From Hand" vertex="1">
+          <mxGeometry height="60" width="240" x="295" y="90" as="geometry" />
+        </mxCell>
+        <mxCell id="ownsBuild" parent="1" style="rhombus;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" value="Does Player Own an Active Build?" vertex="1">
+          <mxGeometry height="110" width="250" x="290" y="190" as="geometry" />
+        </mxCell>
+        <mxCell id="matchesOwnBuild" parent="1" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" value="Does Played Card Match Own Build Target?" vertex="1">
+          <mxGeometry height="110" width="250" x="500" y="350" as="geometry" />
+        </mxCell>
+        <mxCell id="anotherMatch" parent="1" style="rhombus;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" value="Will Another Matching Target Card Remain in Hand?" vertex="1">
+          <mxGeometry height="120" width="250" x="500" y="520" as="geometry" />
+        </mxCell>
+        <mxCell id="mandatoryTake" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontStyle=1;" value="Mandatory Action&#xa;Take Own Build&#xa;&#xa;Drop / Stay / Other Use Not Allowed" vertex="1">
+          <mxGeometry height="110" width="250" x="500" y="700" as="geometry" />
+        </mxCell>
+        <mxCell id="playerChoice" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="Player May Choose a Legal Action&#xa;&#xa;Engine Does Not Choose Best Strategy" vertex="1">
+          <mxGeometry height="100" width="270" x="60" y="350" as="geometry" />
+        </mxCell>
+        <mxCell id="captureType" parent="1" style="rhombus;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" value="Capture Type?" vertex="1">
+          <mxGeometry height="100" width="210" x="90" y="510" as="geometry" />
+        </mxCell>
+        <mxCell id="directMatch" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" value="Direct Match&#xa;Played X takes loose X" vertex="1">
+          <mxGeometry height="80" width="200" x="20" y="680" as="geometry" />
+        </mxCell>
+        <mxCell id="sumCapture" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" value="Combination Capture&#xa;Selected loose cards sum to played value" vertex="1">
+          <mxGeometry height="80" width="230" x="250" y="680" as="geometry" />
+        </mxCell>
+        <mxCell id="buildCapture" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" value="Build Capture&#xa;Played card matches build target" vertex="1">
+          <mxGeometry height="80" width="200" x="20" y="820" as="geometry" />
+        </mxCell>
+        <mxCell id="exposedTopCapture" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" value="Exposed Top Card Participates&#xa;Only when legal under current capture/build rules" vertex="1">
+          <mxGeometry height="90" width="240" x="250" y="820" as="geometry" />
+        </mxCell>
+        <mxCell id="manualSelection" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;" value="Player Selects Exact Target Card(s)" vertex="1">
+          <mxGeometry height="70" width="250" x="120" y="970" as="geometry" />
+        </mxCell>
+        <mxCell id="legalCheck" parent="1" style="rhombus;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" value="Is Selected Capture Legal?" vertex="1">
+          <mxGeometry height="100" width="210" x="140" y="1090" as="geometry" />
+        </mxCell>
+        <mxCell id="invalid" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" value="Reject Move&#xa;Return to Legal Move Selection" vertex="1">
+          <mxGeometry height="80" width="230" x="20" y="1250" as="geometry" />
+        </mxCell>
+        <mxCell id="applyCapture" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;" value="Apply Capture" vertex="1">
+          <mxGeometry height="70" width="200" x="330" y="1250" as="geometry" />
+        </mxCell>
+        <mxCell id="onlyChosen" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontStyle=1;" value="Capture ONLY Selected Legal Set&#xa;&#xa;Other valid matches/combinations remain on floor" vertex="1">
+          <mxGeometry height="100" width="260" x="300" y="1370" as="geometry" />
+        </mxCell>
+        <mxCell id="inventory" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" value="Move Captured Cards to Player Inventory&#xa;Preserve Capture Order&#xa;Update Exposed Top Card" vertex="1">
+          <mxGeometry height="100" width="280" x="290" y="1510" as="geometry" />
+        </mxCell>
+        <mxCell id="lastCapture" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" value="Set lastCapturePlayer = Current Player" vertex="1">
+          <mxGeometry height="70" width="250" x="305" y="1650" as="geometry" />
+        </mxCell>
+        <mxCell id="integrity" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;" value="Validate Card Integrity&#xa;Every Card Exists in One Location Only" vertex="1">
+          <mxGeometry height="80" width="270" x="295" y="1760" as="geometry" />
+        </mxCell>
+        <mxCell id="turnEnd" parent="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1;" value="End Turn&#xa;Pass to Opponent" vertex="1">
+          <mxGeometry height="70" width="210" x="325" y="1880" as="geometry" />
+        </mxCell>
+        <mxCell id="ruleNote1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontStyle=1;" value="Design Principle:&#xa;Engine enforces legality, not optimal strategy." vertex="1">
+          <mxGeometry height="90" width="240" x="550" y="930" as="geometry" />
+        </mxCell>
+        <mxCell id="ruleNote2" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;" value="Example:&#xa;Played 6 may capture selected loose 4 + 2.&#xa;Another loose 6 can remain if player does not select it." vertex="1">
+          <mxGeometry height="120" width="240" x="550" y="1060" as="geometry" />
+        </mxCell>
+        <mxCell id="ruleNote3" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" value="Exception:&#xa;If the played card is the player&#39;s last matching card for their own active build, the build must be taken automatically." vertex="1">
+          <mxGeometry height="130" width="240" x="550" y="1220" as="geometry" />
+        </mxCell>
+        <mxCell id="e1" edge="1" parent="1" source="start" target="ownsBuild">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e2" edge="1" parent="1" source="ownsBuild" target="playerChoice" value="No">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e3" edge="1" parent="1" source="ownsBuild" target="matchesOwnBuild" value="Yes">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e4" edge="1" parent="1" source="matchesOwnBuild" target="playerChoice" value="No">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e5" edge="1" parent="1" source="matchesOwnBuild" target="anotherMatch" value="Yes">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e6" edge="1" parent="1" source="anotherMatch" target="mandatoryTake" value="No">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e7" edge="1" parent="1" source="anotherMatch" target="playerChoice" value="Yes">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e8" edge="1" parent="1" source="mandatoryTake" target="applyCapture">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e9" edge="1" parent="1" source="playerChoice" target="captureType">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e10" edge="1" parent="1" source="captureType" target="directMatch" value="Direct">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e11" edge="1" parent="1" source="captureType" target="sumCapture" value="Sum">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e12" edge="1" parent="1" source="captureType" target="buildCapture" value="Build">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e13" edge="1" parent="1" source="captureType" target="exposedTopCapture" value="Top Card">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e14" edge="1" parent="1" source="directMatch" target="manualSelection">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e15" edge="1" parent="1" source="sumCapture" target="manualSelection">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e16" edge="1" parent="1" source="buildCapture" target="manualSelection">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e17" edge="1" parent="1" source="exposedTopCapture" target="manualSelection">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e18" edge="1" parent="1" source="manualSelection" target="legalCheck">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e19" edge="1" parent="1" source="legalCheck" target="invalid" value="No">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e20" edge="1" parent="1" source="legalCheck" target="applyCapture" value="Yes">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e21" edge="1" parent="1" source="applyCapture" target="onlyChosen">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e22" edge="1" parent="1" source="onlyChosen" target="inventory">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e23" edge="1" parent="1" source="inventory" target="lastCapture">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e24" edge="1" parent="1" source="lastCapture" target="integrity">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e25" edge="1" parent="1" source="integrity" target="turnEnd">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
