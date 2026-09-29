@@ -4,11 +4,8 @@ import { ClerkProvider } from '@clerk/react';
 import App from './App';
 import './styles.css';
 
-const publishableKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
-
-if (!publishableKey) {
-  throw new Error('Missing VITE_CLERK_PUBLISHABLE_KEY. Add it to .env.local before starting Zulu Casino.');
-}
+const publishableKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY
+  ?? 'pk_test_Z2VudGxlLXBhbmdvbGluLTI5MTguY2xlcmsuYWNjb3VudHMuZGV2JA';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
